@@ -1,0 +1,16 @@
+---
+import StatusBadge from './StatusBadge.astro';
+const { id, titulo, autor, estado, revisores } = Astro.props;
+---
+<tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+    <td class="p-4 text-gray-600">{id}</td>
+    <td class="p-4 text-gray-700 font-medium">{titulo}</td>
+    <td class="p-4 text-gray-600">{autor}</td>
+    <td class="p-4"><StatusBadge estado={estado} /></td>
+    <td class="p-4 text-center text-gray-600 font-semibold">{revisores}</td>
+    <td class="p-4">
+        <button class="bg-[#5F1333] text-white px-4 py-1 text-sm rounded-sm hover:bg-[#4a0e28]">
+            Ver
+        </button>
+    </td>
+</tr>

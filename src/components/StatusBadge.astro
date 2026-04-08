@@ -1,0 +1,18 @@
+---
+interface Props {
+    estado: "EN REVISIÓN" | "ENVIADO" | "APROBADO" | "BAJA";
+}
+
+const { estado } = Astro.props;
+const colors: Record<string, string> = {
+    "EN REVISIÓN": "bg-[#B47B3E] text-white",
+    "ENVIADO": "bg-[#5F1333] text-white",
+    "APROBADO": "bg-[#2D7A32] text-white",
+    "BAJA": "bg-[#9A8B8F] text-white",
+};
+
+const colorClass = colors[estado] || "bg-gray-200";
+---
+<span class={`px-4 py-1 rounded-sm font-bold text-sm inline-block w-32 text-center ${colorClass}`}>
+    {estado}
+</span>

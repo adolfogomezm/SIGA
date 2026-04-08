@@ -1,0 +1,14 @@
+---
+interface Props {
+    tipo: "AUTOR" | "REVISOR";
+}
+const { tipo } = Astro.props;
+
+const colors = {
+    "AUTOR": "bg-[#5F1333] text-white",
+    "REVISOR": "bg-[#1D63B8] text-white",
+};
+---
+<span class={`px-4 py-1 font-bold text-xs uppercase w-28 text-center inline-block ${colors[tipo]}`}>
+    {tipo}
+</span>

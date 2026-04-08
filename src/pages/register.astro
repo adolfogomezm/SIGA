@@ -1,0 +1,93 @@
+---
+import LoginLayout from '../layouts/Login.astro';
+import CardContainer from '../components/CardContainer.astro';
+---
+<LoginLayout>
+    <CardContainer class="w-full max-w-3xl">
+        <form id="register-form" class="space-y-6">
+            <h2 class="text-4xl font-bold text-[#5F1333] mb-8">Crear Cuenta</h2>
+
+            <div class="space-y-1">
+                <label class="block text-lg font-semibold text-gray-700">Nombre completo</label>
+                <input
+                        name="nombre"
+                        type="text"
+                        required
+                        class="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#5F1333]"
+                />
+            </div>
+
+            <div class="space-y-1">
+                <label class="block text-lg font-semibold text-gray-700">Correo electrónico</label>
+                <input
+                        name="correo"
+                        type="email"
+                        required
+                        class="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#5F1333]"
+                />
+            </div>
+
+            <div class="space-y-1">
+                <label class="block text-lg font-semibold text-gray-700">Institución / Adscripción</label>
+                <input
+                        name="institucion"
+                        type="text"
+                        required
+                        class="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#5F1333]"
+                />
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1">
+                    <label class="block text-lg font-semibold text-gray-700">Contraseña</label>
+                    <input
+                            name="password"
+                            type="password"
+                            required
+                            class="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#5F1333]"
+                    />
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-lg font-semibold text-gray-700">Confirmar contraseña</label>
+                    <input
+                            type="password"
+                            required
+                            class="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#5F1333]"
+                    />
+                </div>
+            </div>
+
+            <button
+                    type="submit"
+                    class="w-full bg-[#5F1333] text-white py-4 mt-4 rounded font-bold uppercase tracking-widest hover:bg-[#4a0e28] transition-all active:scale-[0.98]"
+            >
+                Registrar Cuenta
+            </button>
+
+            <div class="text-center pt-4 text-gray-500 text-lg">
+                ¿Ya tienes cuenta?
+                <a href="/login" class="text-gray-700 hover:underline ml-1">Iniciar sesión</a>
+            </div>
+        </form>
+    </CardContainer>
+</LoginLayout>
+
+<script>
+    import { actions } from 'astro:actions';
+
+    const form = document.getElementById('register-form') as HTMLFormElement;
+
+    form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+        const dataToSave = Object.fromEntries(formData);
+
+        const { data, error } = await actions.registrarCuenta(dataToSave as any);
+
+        if (error) {
+            alert(error.message);
+        } else {
+            window.location.href = '/login';
+        }
+    });
+</script>

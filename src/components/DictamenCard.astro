@@ -1,0 +1,21 @@
+---
+interface Props {
+    revisor: string;
+    estado: string;
+    observaciones: string;
+}
+const { revisor, estado, observaciones } = Astro.props;
+---
+<div class="bg-white shadow-md flex flex-col border border-gray-200">
+    <div class="bg-[#5F1333] text-white text-center py-2 font-bold text-lg">
+        {revisor}
+    </div>
+    <div class="p-8 flex flex-col items-center">
+        <span class="bg-[#2D7A32] text-white px-10 py-2 font-bold uppercase tracking-wider text-sm">
+            {estado}
+        </span>
+        <p class="text-gray-500 italic mt-8 text-center">
+            {observaciones}
+        </p>
+    </div>
+</div>

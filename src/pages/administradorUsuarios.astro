@@ -1,0 +1,64 @@
+---
+import Main from '../layouts/Main.astro';
+import Sidebar from "../components/Sidebar.astro";
+import CardContainer from '../components/CardContainer.astro';
+import UserRow from '../components/UserRow.astro';
+---
+
+<Main>
+    <Sidebar role="administrador" />
+
+    <main slot="main" class="p-8 w-full bg-[#F3F2F3] min-h-screen">
+        <h1 class="text-4xl font-bold text-[#5F1333] mb-8">Gestión de Usuarios</h1>
+
+        <CardContainer class="mb-6">
+            <!--- Barra busqueda --->
+            <div class="flex items-center justify-between gap-6">
+                <div class="flex-1">
+                    <input
+                            type="text"
+                            placeholder="Buscar usuario..."
+                            class="w-full p-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-[#5F1333]"
+                    />
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <span class="text-gray-600">Tipo:</span>
+                    <select class="bg-[#EDEDED] p-2 border-r-8 border-transparent font-medium min-w-[150px]">
+                        <option>Todos</option>
+                        <option>Autor</option>
+                        <option>Revisor</option>
+                    </select>
+                </div>
+
+                <button class="bg-[#5F1333] text-white px-6 py-2 font-bold flex items-center gap-2 hover:bg-[#4a0e28] transition-colors">
+                    <span>+</span> Nuevo Usuario
+                </button>
+            </div>
+
+            <!--- Tabla con datos --->
+            <div class="shadow-md overflow-hidden mt-4">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-[#5F1333] text-white">
+                    <tr>
+                        <th class="p-4 uppercase text-sm font-bold">ID</th>
+                        <th class="p-4 uppercase text-sm font-bold">Nombre</th>
+                        <th class="p-4 uppercase text-sm font-bold">Correo</th>
+                        <th class="p-4 uppercase text-sm font-bold text-center">Tipo</th>
+                        <th class="p-4 uppercase text-sm font-bold text-center">Estado</th>
+                        <th class="p-4 uppercase text-sm font-bold text-center">Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <UserRow id="USR-001" nombre="Nombre Apellido" correo="correo@ejemplo.com" tipo="AUTOR" estado="ACTIVO" />
+                    <UserRow id="USR-002" nombre="Nombre Apellido" correo="correo@ejemplo.com" tipo="REVISOR" estado="ACTIVO" />
+                    <UserRow id="USR-003" nombre="Nombre Apellido" correo="correo@ejemplo.com" tipo="REVISOR" estado="BAJA" />
+                    <UserRow id="USR-004" nombre="Nombre Apellido" correo="correo@ejemplo.com" tipo="AUTOR" estado="ACTIVO" />
+                    </tbody>
+                </table>
+            </div>
+        </CardContainer>
+
+
+    </main>
+</Main>

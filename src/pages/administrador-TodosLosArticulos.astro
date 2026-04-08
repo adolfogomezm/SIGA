@@ -1,0 +1,85 @@
+---
+import Main from '../layouts/Main.astro';
+import Sidebar from "../components/Sidebar.astro";
+import CardContainer from '../components/CardContainer.astro';
+import ArticleRow from '../components/ArticleRow.astro';
+---
+
+<Main>
+    <Sidebar role="administrador" />
+    <main slot="main" class="p-8 w-full bg-[#F3F2F3] min-h-screen">
+        <div>
+            <h1 class="text-4xl font-bold text-[#5F1333] mb-8 mb-8">Gestión de Artículos</h1>
+
+            <CardContainer class="mb-6">
+                <div class="flex items-center justify-between gap-4">
+                    <div class="flex-1">
+                        <input
+                                type="text"
+                                placeholder="Buscar por título o autor..."
+                                class="w-full p-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-[#5F1333]"
+                        />
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <span class="text-gray-600">Filtrar por estado:</span>
+                        <select class="bg-gray-100 p-2 border-r-8 border-transparent font-medium">
+                            <option>Todos</option>
+                            <option>En Revisión</option>
+                            <option>Aprobado</option>
+                        </select>
+                    </div>
+
+                    <button class="bg-[#5F1333] text-white px-6 py-2 font-bold flex items-center gap-2 hover:bg-[#4a0e28]">
+                        <span>+</span> Alta Artículo
+                    </button>
+                </div>
+            </CardContainer>
+
+            <div class="overflow-hidden bg-white shadow-md">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-[#5F1333] text-white">
+                    <tr>
+                        <th class="p-4 uppercase text-sm">ID</th>
+                        <th class="p-4 uppercase text-sm">Título</th>
+                        <th class="p-4 uppercase text-sm">Autor</th>
+                        <th class="p-4 uppercase text-sm">Estado</th>
+                        <th class="p-4 uppercase text-sm text-center">Revisores</th>
+                        <th class="p-4 uppercase text-sm">Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody class="bg-gray-50/50">
+                    <ArticleRow
+                            id="E-001"
+                            titulo="Título del artículo..."
+                            autor="Nombre Autor"
+                            estado="EN REVISIÓN"
+                            revisores="2/3"
+                    />
+                    <ArticleRow
+                            id="E-002"
+                            titulo="Título del artículo..."
+                            autor="Nombre Autor"
+                            estado="ENVIADO"
+                            revisores="0/3"
+                    />
+                    <ArticleRow
+                            id="E-003"
+                            titulo="Título del artículo..."
+                            autor="Nombre Autor"
+                            estado="APROBADO"
+                            revisores="3/3"
+                    />
+                    <ArticleRow
+                            id="E-004"
+                            titulo="Título del artículo..."
+                            autor="Nombre Autor"
+                            estado="BAJA"
+                            revisores="—"
+                    />
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</Main>

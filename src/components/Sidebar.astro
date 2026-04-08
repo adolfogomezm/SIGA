@@ -1,0 +1,34 @@
+---
+import "../styles/global.css";
+
+const menu = {
+    autor: [
+        {text: "Mis Articulos", link: "/misArticulos"},
+        {text: "Subir Artículo", link: "/subirArticulo"},
+    ],
+    revisor: [
+        {text: "Asignados", link: "/asignados"},
+        {text: "Revisados", link: "/revisados"},
+    ],
+    administrador: [
+        {text: "Todos Los Artículos", link: "/administrador-TodosLosArticulos"},
+        {text: "Usuarios", link: "/administradorUsuarios"},
+        {text: "Asignar Revisores", link: "/administradorAsignarRevisores"},
+        {text: "Aprobación Final", link: "/administradorAprobacionFinal"},
+    ],
+};
+
+type Role = keyof typeof menu;
+interface Props {
+    role: Role;
+}
+const { role } = Astro.props;
+const links = menu[role];
+---
+<aside class="bg-siga-black h-full w-full">
+    <nav class="flex-col flex">
+        {links.map((item) =>(
+            <a href={item.link} class="text-2xl p-5 text-center text-gray-300 transition-all duration-200 hover:scale-105 hover:bg-amber-950  hover:shadow-xl active:scale-95 focus:outline-none focus:ring-4 focus:ring-indigo-300 focus:border-indigo-700">{item.text}</a>
+        )) }
+    </nav>
+</aside>

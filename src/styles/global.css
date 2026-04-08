@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+@theme {
+    --color-siga-black: #2d1520;
+    --color-siga-red-normal: #6d1535;
+    --color-siga-red-bright: #b5294e;
+}

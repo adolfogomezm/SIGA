@@ -1,0 +1,31 @@
+---
+import "../styles/global.css";
+---
+<!doctype html>
+<html lang="es" class="m-0 h-full w-full" >
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Astro Basics</title>
+	</head>
+	<body class="h-screen w-full flex flex-col m-0">
+
+		<header class="h-[15vh] bg-siga-red-normal text-3xl flex items-center px-30">
+			<h1 class="text-white font-semibold  ">
+				SIGA
+			</h1>
+		</header>
+
+		<div class="flex-1 flex overflow-hidden">
+			<nav class="overflow-y-auto w-1/5 h-full">
+				<slot/>
+			</nav>
+			<slot name="main" class="overflow-auto"/>
+		</div>
+
+	</body>
+</html>
+

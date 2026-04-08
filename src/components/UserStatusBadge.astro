@@ -1,0 +1,14 @@
+---
+interface Props {
+    estado: "ACTIVO" | "BAJA";
+}
+const { estado } = Astro.props;
+
+const colors = {
+    "ACTIVO": "bg-[#2D7A32] text-white",
+    "BAJA": "bg-[#9A8B8F] text-white",
+};
+---
+<span class={`px-4 py-1 font-bold text-xs uppercase w-28 text-center inline-block ${colors[estado]}`}>
+    {estado}
+</span>

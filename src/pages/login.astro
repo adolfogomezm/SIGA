@@ -1,0 +1,73 @@
+---
+import LoginLayout from '../layouts/Login.astro';
+import CardContainer from '../components/CardContainer.astro';
+---
+<LoginLayout>
+    <CardContainer>
+        <form id="login-form" class="space-y-8 w-full">
+            <h2 class="text-4xl font-semibold text-[#5F1333] mb-10">Iniciar Sesión</h2>
+
+            <div class="space-y-2">
+                <label for="usuario" class="block text-lg font-medium text-[#4F4F4F]">
+                    Usuario
+                </label>
+                <input
+                        name="correo"
+                        type="email"
+                        id="usuario"
+                        required
+                        placeholder="nombre@correo.com"
+                        class="w-full p-4 border border-[#E0E0E0] rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-[#5F1333] placeholder:text-[#BDBDBD]"
+                />
+            </div>
+
+            <div class="space-y-2">
+                <label for="password" class="block text-lg font-medium text-[#4F4F4F]">
+                    Contraseña
+                </label>
+                <input
+                        name="password"
+                        type="password"
+                        id="password"
+                        required
+                        placeholder="••••••••"
+                        class="w-full p-4 border border-[#E0E0E0] rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-[#5F1333] placeholder:text-[#BDBDBD]"
+                />
+            </div>
+
+            <button
+                    type="submit"
+                    class="w-full bg-[#5F1333] text-white py-4 rounded-lg text-xl font-semibold uppercase tracking-wider hover:bg-[#7D1C44] transition-colors shadow-md active:scale-[0.98]"
+            >
+                Ingresar
+            </button>
+
+            <div class="flex justify-between items-center pt-4 text-lg">
+                <span class="text-[#8F8F8F]">¿No tienes cuenta?</span>
+                <a href="/register" class="text-[#8B2349] font-medium hover:underline decoration-2">
+                    Registrarse
+                </a>
+            </div>
+        </form>
+    </CardContainer>
+</LoginLayout>
+
+<script>
+    import { actions } from 'astro:actions';
+
+    const form = document.getElementById('login-form') as HTMLFormElement;
+
+    form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+        const dataToValidate = Object.fromEntries(formData);
+
+        const { data, error } = await actions.iniciarSesion(dataToValidate as any);
+
+        if (error) {
+            alert(error.message);
+        } else {
+            window.location.href ='administrador';
+        }
+    });
+</script>

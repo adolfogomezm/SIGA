@@ -1,0 +1,62 @@
+---
+import Main from '../layouts/Main.astro';
+import Sidebar from "../components/Sidebar.astro";
+import CardContainer from '../components/CardContainer.astro';
+import DictamenCard from '../components/DictamenCard.astro';
+---
+
+<Main>
+    <Sidebar role="administrador" />
+
+    <main slot="main" class="overflow-scroll p-8 w-full bg-[#F3F2F3] min-h-screen">
+        <div class="">
+            <h1 class="text-3xl font-bold text-[#5F1333] mb-8 uppercase tracking-tight">
+                Aprobación Final — E-001
+            </h1>
+
+            <CardContainer class="mb-6">
+                <div class="grid grid-cols-[100px_1fr] gap-y-4 py-2">
+                    <span class="font-bold text-gray-700">Título:</span>
+                    <span class="text-gray-600">[Título del artículo]</span>
+
+                    <span class="font-bold text-gray-700">Autor:</span>
+                    <span class="text-gray-600">[Nombre del autor]</span>
+                </div>
+            </CardContainer>
+
+            <h2 class="text-[#5F1333] font-bold mb-6 text-xl">Dictámenes de Revisores</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <DictamenCard
+                        revisor="Revisor 1"
+                        estado="APROBADO"
+                        observaciones="Observaciones del revisor..."
+                />
+                <DictamenCard
+                        revisor="Revisor 2"
+                        estado="APROBADO"
+                        observaciones="Observaciones del revisor..."
+                />
+                <DictamenCard
+                        revisor="Revisor 3"
+                        estado="APROBADO"
+                        observaciones="Observaciones del revisor..."
+                />
+            </div>
+
+            <CardContainer>
+                <h2 class="text-[#5F1333] font-bold mb-6 text-lg">Decisión Final del Administrador:</h2>
+
+                <div class="flex gap-8">
+                    <button class="flex-1 bg-[#2D7A32] text-white py-4 font-bold uppercase flex items-center justify-center gap-3 hover:bg-[#245e28] transition-all shadow-md active:scale-[0.98]">
+                        <span class="text-xl">✔</span> APROBAR Y PUBLICAR
+                    </button>
+
+                    <button class="flex-1 bg-[#C62828] text-white py-4 font-bold uppercase flex items-center justify-center gap-3 hover:bg-[#a51f1f] transition-all shadow-md active:scale-[0.98]">
+                        <span class="text-xl">✖</span> RECHAZAR ARTÍCULO
+                    </button>
+                </div>
+            </CardContainer>
+        </div>
+    </main>
+</Main>

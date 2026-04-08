@@ -1,0 +1,38 @@
+---
+import "../styles/global.css";
+---
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SIGA - Autenticación</title>
+</head>
+<body class="w-screen h-screen bg-[#F3F2F3] flex m-0 overflow-hidden font-sans">
+
+<aside class="h-full w-2/5 bg-[#5F1333] flex flex-col justify-between p-16 text-white">
+    <div>
+        <h1 class="text-7xl font-bold mb-6 tracking-tight">SIGA</h1>
+        <p class="text-2xl font-light leading-relaxed max-w-md">
+            Sistema de Gestión de Artículos
+        </p>
+    </div>
+
+    <p class="text-lg font-extralight italic opacity-90 leading-normal max-w-xs">
+        Revisión y Aprobación de<br/>Publicaciones Académicas
+    </p>
+</aside>
+
+<main class="flex-1 w-3/5 h-full flex flex-col items-center justify-center p-12 relative">
+
+    <div class="w-full">
+        <slot />
+    </div>
+
+    <footer class="absolute bottom-6 right-12 text-sm text-[#8F8F8F]">
+        © 2024 SIGA — Acceso restringido
+    </footer>
+</main>
+
+</body>
+</html>
+

@@ -1,0 +1,18 @@
+---
+import UserTypeBadge from './UserTypeBadge.astro';
+import UserStatusBadge from './UserStatusBadge.astro';
+
+const { id, nombre, correo, tipo, estado } = Astro.props;
+---
+<tr class="border-b border-gray-100 bg-white hover:bg-gray-50 transition-colors">
+    <td class="p-4 text-gray-600">{id}</td>
+    <td class="p-4 text-gray-800 font-medium">{nombre}</td>
+    <td class="p-4 text-gray-500">{correo}</td>
+    <td class="p-0 text-center"><UserTypeBadge tipo={tipo} /></td>
+    <td class="p-0 text-center"><UserStatusBadge estado={estado} /></td>
+    <td class="p-4 text-center">
+        <button class="bg-[#5F1333] text-white px-6 py-1 text-sm rounded-sm hover:bg-[#4a0e28] transition-colors">
+            Editar
+        </button>
+    </td>
+</tr>

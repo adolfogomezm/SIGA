@@ -1,0 +1,52 @@
+---
+import Main from '../layouts/Main.astro';
+import Sidebar from "../components/Sidebar.astro";
+import CardContainer from '../components/CardContainer.astro';
+import RevisorDisponible from '../components/RevisorDisponible.astro';
+import RevisorAsignadoSlot from '../components/RevisorAsignadoSlot.astro';
+---
+
+<Main>
+    <Sidebar role="administrador" />
+
+    <main slot="main" class="p-8 w-full bg-[#F3F2F3] min-h-screen">
+        <div>
+            <h1 class="text-3xl font-bold text-[#5F1333] mb-8 uppercase tracking-tight">
+                Asignar Revisores — E-001
+            </h1>
+
+            <CardContainer class="mb-8">
+                <div class="grid grid-cols-[120px_1fr] gap-y-4 py-2">
+                    <span class="font-bold text-gray-700">Título:</span>
+                    <span class="text-gray-600">[Título del artículo]</span>
+
+                    <span class="font-bold text-gray-700">Área:</span>
+                    <span class="text-gray-600">[Área de conocimiento]</span>
+                </div>
+            </CardContainer>
+
+            <div class="grid grid-cols-2 gap-8">
+                <CardContainer>
+                    <h2 class="text-[#5F1333] font-bold mb-6 text-lg">Revisores Disponibles</h2>
+
+                    <RevisorDisponible nombre="Dr. Revisor 1" />
+                    <RevisorDisponible nombre="Dra. Revisor 2" />
+                    <RevisorDisponible nombre="Dr. Revisor 3" />
+                    <RevisorDisponible nombre="Dra. Revisor 4" />
+                </CardContainer>
+
+                <CardContainer>
+                    <h2 class="text-[#5F1333] font-bold mb-6 text-lg">Revisores Asignados (0/3)</h2>
+
+                    <RevisorAsignadoSlot texto="Revisor 1 — Sin asignar" />
+                    <RevisorAsignadoSlot texto="Revisor 2 — Sin asignar" />
+                    <RevisorAsignadoSlot texto="Revisor 3 — Sin asignar" />
+
+                    <button class="w-full bg-[#5F1333] text-white py-4 mt-4 font-bold uppercase tracking-widest hover:bg-[#4a0e28] transition-all">
+                        Confirmar Asignación
+                    </button>
+                </CardContainer>
+            </div>
+        </div>
+    </main>
+</Main>
