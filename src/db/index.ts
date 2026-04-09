@@ -5,7 +5,7 @@ import * as schema from "./schema";
 const dbUrl = import.meta.env.DATABASE_URL;
 
 if (!dbUrl) {
-    throw new Error("❌ DATABASE_URL no está definida en el archivo .env");
+    throw new Error("No se pudo conectar a la base de datos");
 }
 
 const connection = await mysql.createConnection(dbUrl);

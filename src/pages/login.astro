@@ -65,9 +65,13 @@ import CardContainer from '../components/CardContainer.astro';
         const { data, error } = await actions.iniciarSesion(dataToValidate as any);
 
         if (error) {
-            alert(error.message);
-        } else {
-            window.location.href ='administrador';
+            alert("inicia bien pendejo");
+            return;
         }
+        localStorage.setItem("user_session", JSON.stringify(data.usuario));
+        if(data.usuario.rol === 'autor'){
+            window.location.href ='autor';
+        }
+
     });
 </script>

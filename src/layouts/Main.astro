@@ -13,8 +13,33 @@ import "../styles/global.css";
 	</head>
 	<body class="min-h-screen w-full flex flex-col m-0">
 
-	<header class="h-[12vh] flex-shrink-0 bg-siga-red-normal text-3xl flex items-center px-8">
+	<header class="h-[12vh] flex-shrink-0 bg-siga-red-normal text-3xl flex items-center justify-between px-8">
 		<h1 class="text-white font-semibold">SIGA</h1>
+		<div class="relative inline-block text-left">
+			<button
+				type="button"
+				id="menu-button"
+				class="flex items-center gap-2 text-white font-semibold hover:opacity-80 transition-all focus:outline-none"
+			>
+				<span id="usuario">Cargando...</span>
+				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+				</svg>
+			</button>
+
+			<div
+				id="logout-menu"
+				class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 ring-1 ring-black ring-opacity-5"
+			>
+				<a
+					href="/"
+					class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+					id="btn-logout"
+				>
+					Cerrar sesión
+				</a>
+			</div>
+		</div>
 	</header>
 
 	<div class="flex flex-1">
@@ -31,6 +56,42 @@ import "../styles/global.css";
 
 	</div>
 
+	<script>
+		import { actions } from 'astro:actions';
+
+		const menuButton = document.getElementById('menu-button');
+		const logoutMenu = document.getElementById('logout-menu');
+		const logoutButton = document.getElementById('btn-logout');
+
+		logoutButton?.addEventListener('click', async (e) => {
+			e.preventDefault();
+			await actions.cerrarSesion();
+			localStorage.clear();
+			window.location.href = '/login';
+		});
+
+		menuButton?.addEventListener('click', async (e) => {
+			e.stopPropagation();
+			logoutMenu?.classList.toggle('hidden');
+		});
+
+		document.addEventListener('click', () => {
+			logoutMenu?.classList.add('hidden');
+		});
+	</script>
+	<script>
+		const savedUser = localStorage.getItem("user_session");
+
+		if (savedUser) {
+			const user = JSON.parse(savedUser);
+			const nombreElemento = document.getElementById("usuario");
+			if (nombreElemento) {
+				nombreElemento.innerText = user.nombre.toLowerCase().split(' ').map((item) => {
+					return item.charAt(0).toUpperCase() + item.slice(1);
+				}).join(' ');
+			}
+		}
+	</script>
 	</body>
 </html>
 

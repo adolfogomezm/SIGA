@@ -1,3 +1,14 @@
 ---
-
+import Main from '../../layouts/Main.astro'
+import Sidebar from '../../components/Sidebar.astro'
+import CardContainer from "../../components/CardContainer.astro";
 ---
+<Main>
+    <Sidebar role="autor" />
+    <main slot="main" class="p-8 w-full bg-[#F3F2F3] min-h-screen">
+
+        <CardContainer class="mb-6 ">
+            <h1 class="text-4xl font-bold text-[#5F1333] mb-8">Bienvenido Autor...</h1>
+        </CardContainer>
+    </main>
+</Main>
