@@ -1,0 +1,64 @@
+---
+import CardContainer from './CardContainer.astro';
+---
+<CardContainer>
+    <slot>
+        <div class="text-4xl font-bold text-[#5F1333] mb-8">
+            Mis Artículos
+        </div>
+    </slot>
+</CardContainer>
+<div class="w-full flex flex-wrap justify-center items-center gap-10 mt-10">
+    <div class="bg-siga-red-normal p-8 w-3/4 max-w-3/4 md:max-w-2/5 xl:max-w-1/5">
+        <p id="numeroEnviados" class="text-4xl font-semibold text-white text-center">
+            00
+        </p>
+        <p class="text-2xl font-semibold text-white text-center pt-3">
+            Enviados
+        </p>
+    </div>
+    <div class="bg-amber-600 p-8 w-3/4 max-w-3/4 md:max-w-2/5 xl:max-w-1/5">
+        <p id="numeroEnviados" class="text-4xl font-semibold text-white text-center">
+            00
+        </p>
+        <p class="text-2xl font-semibold text-white text-center pt-3">
+            En Revisión
+        </p>
+    </div>
+    <div class="bg-green-700 p-8 w-3/4 max-w-3/4 md:max-w-2/5 xl:max-w-1/5">
+        <p id="numeroEnviados" class="text-4xl font-semibold text-white text-center">
+            00
+        </p>
+        <p class="text-2xl font-semibold text-white text-center pt-3">
+            Aprovados
+        </p>
+    </div>
+    <div class="bg-orange-700 p-8 w-3/4 max-w-3/4 md:max-w-2/5 xl:max-w-1/5">
+        <p id="numeroEnviados" class="text-4xl font-semibold text-white text-center">
+            00
+        </p>
+        <p class="text-2xl font-semibold text-white text-center pt-3">
+            Rechazados
+        </p>
+    </div>
+</div>
+
+<script>
+    import { actions } from 'astro:actions';
+
+    async function cargarYFiltrar() {
+        const { data, error } = await actions.getArticulos();
+
+        if (error) {
+            console.error("Error al obtener datos:", error.message);
+            return;
+        }
+        if(data) {
+            return;
+        }
+
+        console.log(data);
+    }
+
+    cargarYFiltrar();
+</script>

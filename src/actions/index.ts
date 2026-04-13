@@ -1,8 +1,8 @@
 import { defineAction, ActionError } from "astro:actions";
 import { z } from 'astro:schema';
 import { db } from '../db';
-import { usuario } from '../db/schema';
-import { eq } from 'drizzle-orm';
+import {articulo, coautores, usuario} from '../db/schema';
+import { eq,and } from 'drizzle-orm';
 
 export const server = {
     registrarCuenta: defineAction({
@@ -61,6 +61,12 @@ export const server = {
                 path: "/",
                 httpOnly: true,
                 secure: import.meta.env.PROD,
+                sameSite: "lax",
+            });
+            context.cookies.set("user_id", user.idUsuario.toString(), {
+                path: "/",
+                httpOnly: true,
+                secure: import.meta.env.PROD,
                 sameSite: "lax"
             });
 
@@ -80,4 +86,33 @@ export const server = {
             return { success: true };
         }
     }),
+    getArticulos: defineAction({
+        handler: async (input, context) => {
+            const userId = context.cookies.get("user_id")?.value;
+
+            if (!userId) {
+                throw new ActionError({ code: "UNAUTHORIZED" });
+            }
+
+            return db.select({
+                articulo: articulo
+            })
+                .from(articulo)
+                .innerJoin(
+                    coautores,
+                    eq(articulo.idArticulo, coautores.idArticulo)
+                )
+                .innerJoin(
+                    usuario,
+                    eq(coautores.idUsuario, usuario.idUsuario)
+                )
+                .where(
+                    and(
+                        eq(usuario.idUsuario, Number(userId)),
+                        eq(usuario.rol, 'autor')
+                    )
+                );
+        }
+    }),
+
 };

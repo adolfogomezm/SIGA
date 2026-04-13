@@ -14,8 +14,15 @@ import "../styles/global.css";
 	<body class="min-h-screen w-full flex flex-col m-0">
 
 	<header class="h-[12vh] flex-shrink-0 bg-siga-red-normal text-3xl flex items-center justify-between px-8">
-		<h1 class="text-white font-semibold">SIGA</h1>
-		<div class="relative inline-block text-left">
+		<!--- Navegacion de telefonos ---->
+		<button class="md:hidden">
+			holabutton
+		</button>
+
+
+		<!--- Navegacion fuera de telefonos ----->
+		<h1 class="text-white font-semibold hidden md:block">SIGA</h1>
+		<div class="relative hidden md:inline-block text-left ">
 			<button
 				type="button"
 				id="menu-button"
@@ -44,13 +51,13 @@ import "../styles/global.css";
 
 	<div class="flex flex-1">
 
-		<nav class="w-1/5">
+		<nav class=" hidden md:block w-1/5">
 			<div class="sticky top-0 h-screen overflow-y-auto bg-gray-100">
 				<slot />
 			</div>
 		</nav>
 
-		<main class="flex-1 p-8">
+		<main class="flex-1 md:p-8">
 			<slot name="main" />
 		</main>
 
