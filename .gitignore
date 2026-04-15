@@ -24,3 +24,7 @@ pnpm-debug.log*
 .idea/
 
 pnpm-lock.yaml
+
+# docs
+!src/pages/docs/*
+!src/pages/docs/.gitkeep
