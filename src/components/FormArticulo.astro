@@ -1,0 +1,159 @@
+---
+import '../styles/global.css'
+---
+<div class="bg-white p-6 md:p-8 rounded-lg shadow-md border border-gray-200 w-full min-h-full">
+    <form id="articleForm">
+        <div class="mb-6">
+            <label for="title" class="block text-base font-bold text-gray-800 mb-2">Título del artículo</label>
+            <input type="text" id="title" name="title" required placeholder="Ingrese el título completo..." class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#621634]">
+        </div>
+
+        <div class="mb-6">
+            <label for="abstract" class="block text-base font-bold text-gray-800 mb-2">Abstract (máx. 250 palabras)</label>
+            <textarea id="abstract" name="abstract" required placeholder="Resumen del contenido..." class="w-full px-4 py-2 h-36 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#621634] resize-none"></textarea>
+        </div>
+
+        <div class="mb-6">
+            <label for="area" class="block text-base font-bold text-gray-800 mb-2">Área de investigación</label>
+            <select id="area" name="area" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#621634]">
+                <option value="" disabled selected>Seleccione un área</option>
+                <option value="area_1">Área 1</option>
+                <option value="area_2">Área 2</option>
+                <option value="area_3">Área 3</option>
+            </select>
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-base font-bold text-gray-800 mb-2">Coautores (máx. 3)</label>
+            <p class="text-sm text-gray-500 mb-3">Ingresa el ID de usuario de cada coautor registrado.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <input type="number" min="1" step="1" name="coauthors" aria-label="ID del coautor 1" placeholder="ID del coautor 1" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#621634]">
+                <input type="number" min="1" step="1" name="coauthors" aria-label="ID del coautor 2" placeholder="ID del coautor 2" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#621634]">
+                <input type="number" min="1" step="1" name="coauthors" aria-label="ID del coautor 3" placeholder="ID del coautor 3" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#621634]">
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-base font-bold text-gray-800 mb-2">Archivo del artículo (PDF)</label>
+            <div id="dropZone" class="w-full p-6 border-2 border-dashed border-gray-300 rounded-md bg-gray-50 flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
+                <span class="text-3xl mb-2">📎</span>
+                <p id="dropZoneText" class="text-sm text-gray-600 font-medium text-center">Arrastra tu archivo aquí o haz clic para seleccionar</p>
+                <input type="file" id="fileInput" name="file" accept=".pdf" class="hidden">
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-4 mt-8">
+            <button type="button" id="cancelButton" class="px-6 py-2 bg-[#D1C9CC] text-gray-800 rounded-md font-medium hover:bg-[#BDB4B7] sm:w-auto w-full transition-colors">Cancelar</button>
+            <button type="submit" id="submitButton" class="px-6 py-2 bg-[#621634] text-white rounded-md font-bold uppercase hover:bg-[#501029] sm:w-auto w-full transition-colors">ENVIAR ARTÍCULO</button>
+        </div>
+    </form>
+</div>
+
+
+<script>
+    import { actions } from 'astro:actions';
+
+    const articleForm = document.querySelector<HTMLFormElement>('#articleForm');
+    const dropZone = document.querySelector<HTMLDivElement>('#dropZone');
+    const fileInput = document.querySelector<HTMLInputElement>('#fileInput');
+    const dropZoneText = document.querySelector<HTMLElement>('#dropZoneText');
+    const cancelButton = document.querySelector<HTMLButtonElement>('#cancelButton');
+
+    if (!articleForm || !dropZone || !fileInput || !dropZoneText || !cancelButton) {
+        throw new Error('No se pudieron inicializar los controles del formulario de artículos.');
+    }
+
+    const dropZoneTextElement = dropZoneText as HTMLElement;
+
+    let selectedFile: File | null = null;
+
+    function resetFileState() {
+        selectedFile = null;
+        dropZoneTextElement.innerText = "Arrastra tu archivo aquí o haz clic para seleccionar";
+        dropZoneTextElement.classList.remove('text-green-600', 'font-bold');
+    }
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', (e: DragEvent) => {
+        e.preventDefault();
+        dropZone.classList.add('border-gray-400', 'bg-gray-100');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('border-gray-400', 'bg-gray-100');
+    });
+
+    dropZone.addEventListener('drop', (e: DragEvent) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-gray-400', 'bg-gray-100');
+        const files = e.dataTransfer?.files;
+
+        if (files && files.length > 0) {
+            handleFileSelection(files[0]);
+        }
+    });
+
+    fileInput.addEventListener('change', (e: Event) => {
+        const target = e.currentTarget;
+
+        if (target instanceof HTMLInputElement && target.files && target.files.length > 0) {
+            handleFileSelection(target.files[0]);
+        }
+    });
+
+    function handleFileSelection(file: File) {
+        if (file.type === 'application/pdf') {
+            selectedFile = file;
+            dropZoneTextElement.innerText = `Archivo: ${file.name}`;
+            dropZoneTextElement.classList.add('text-green-600', 'font-bold');
+        } else {
+            alert('Solo se permiten archivos PDF.');
+        }
+    }
+
+    cancelButton.addEventListener('click', () => {
+        articleForm.reset();
+        resetFileState();
+    });
+
+    articleForm.addEventListener('submit', async (e: SubmitEvent) => {
+        e.preventDefault();
+
+        if (!selectedFile) return alert('Debes subir un archivo PDF');
+
+        const formData = new FormData(articleForm);
+        const area = formData.get('area');
+
+        if (area !== 'area_1' && area !== 'area_2' && area !== 'area_3') {
+            alert('Selecciona un área válida.');
+            return;
+        }
+
+        const articleArea = area as 'area_1' | 'area_2' | 'area_3';
+
+        const coauthorValues = formData.getAll('coauthors');
+
+        const coauthors: number[] = Array.from(new Set(
+            coauthorValues
+                .map((value) => typeof value === 'string' ? Number(value) : NaN)
+                .filter((value) => Number.isInteger(value) && value > 0)
+        ));
+
+        const { data, error } = await actions.subirArticulo({
+            title: String(formData.get('title') ?? ''),
+            abstract: String(formData.get('abstract') ?? ''),
+            area: articleArea,
+            route: '/docs/' + selectedFile.name,
+            coauthors,
+        });
+
+        if (error) {
+            alert(error.message);
+        } else {
+            alert(data.message);
+            articleForm.reset();
+            resetFileState();
+        }
+    });
+</script>

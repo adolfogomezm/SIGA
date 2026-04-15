@@ -62,10 +62,9 @@ import '../styles/global.css'
             </td>
             <td class="flex justify-between lg:table-cell px-6 py-4 text-center">
                 <span class="lg:hidden font-bold text-[#6B1B32] uppercase text-xs text-left">Acción</span>
-                <button class="bg-[#D8CED1] text-gray-700 px-6 py-2 rounded-sm text-sm w-full lg:w-auto hover:bg-gray-300 transition-colors" 
-                        onclick="viewDetail('${data.id}')">
+                <a href="${data.route}" class="bg-[#D8CED1] text-gray-700 px-6 py-2 rounded-sm text-sm w-full lg:w-auto hover:bg-gray-300 transition-colors" ">
                     Ver
-                </button>
+                </a>
             </td>
         </tr>
     `;
@@ -86,6 +85,7 @@ import '../styles/global.css'
                 title: element.articulo.titulo,
                 date: new Date(element.articulo.date).toLocaleDateString(),
                 status: element.articulo.estado,
+                route: element.articulo.ruta,
             });
         }
     }

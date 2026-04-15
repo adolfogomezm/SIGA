@@ -2,7 +2,7 @@ import { defineAction, ActionError } from "astro:actions";
 import { z } from 'astro:schema';
 import { db } from '../db';
 import {articulo, coautores, usuario} from '../db/schema';
-import { eq,and } from 'drizzle-orm';
+import { eq,and,inArray } from 'drizzle-orm';
 
 export const server = {
     registrarCuenta: defineAction({
@@ -114,5 +114,153 @@ export const server = {
                 );
         }
     }),
+    subirArticulo: defineAction({
+        input: z.object({
+            title: z.string().max(45),
+            abstract: z.string().max(255),
+            route: z.string().max(255),
+            area: z.enum(["area_1", "area_2", "area_3"]),
+            coauthors: z.array(z.number().int().positive()).max(3).default([]),
+        }),
+        handler: async (input, context) => {
+            const userId = context.cookies.get("user_id")?.value;
+
+            if (!userId) {
+                throw new ActionError({
+                    code: "UNAUTHORIZED",
+                    message: "Debes iniciar sesión para subir artículos.",
+                });
+            }
+
+            const currentUserId = Number(userId);
+
+            if (Number.isNaN(currentUserId)) {
+                throw new ActionError({
+                    code: "UNAUTHORIZED",
+                    message: "Sesión inválida, vuelve a iniciar sesión.",
+                });
+            }
+
+            const [currentUser] = await db
+                .select()
+                .from(usuario)
+                .where(eq(usuario.idUsuario, currentUserId))
+                .limit(1);
+
+            if (!currentUser) {
+                throw new ActionError({
+                    code: "UNAUTHORIZED",
+                    message: "No se encontró el usuario autenticado.",
+                });
+            }
+
+            const uniqueCoauthorIds = Array.from(new Set(input.coauthors));
+
+            if (uniqueCoauthorIds.length !== input.coauthors.length) {
+                throw new ActionError({
+                    code: "BAD_REQUEST",
+                    message: "No repitas el mismo coautor más de una vez.",
+                });
+            }
+
+            if (uniqueCoauthorIds.includes(currentUserId)) {
+                throw new ActionError({
+                    code: "BAD_REQUEST",
+                    message: "No puedes agregarte como coautor.",
+                });
+            }
+
+            const coauthorIds = uniqueCoauthorIds;
+
+            const coauthorUsers = coauthorIds.length
+                ? await db
+                    .select({ idUsuario: usuario.idUsuario })
+                    .from(usuario)
+                    .where(inArray(usuario.idUsuario, coauthorIds))
+                : [];
+
+            if (coauthorUsers.length !== coauthorIds.length) {
+                throw new ActionError({
+                    code: "BAD_REQUEST",
+                    message: "Uno o más coautores no existen como usuarios registrados.",
+                });
+            }
+
+            try {
+                await db.transaction(async (tx) => {
+                    const insertedArticles = await tx.insert(articulo).values({
+                        titulo: input.title,
+                        abstract: input.abstract,
+                        ruta: input.route,
+                        area: input.area,
+                        estado: "Enviado",
+                    }).$returningId();
+
+                    const articuloId = insertedArticles[0]?.idArticulo;
+
+                    if (!articuloId) {
+                        throw new ActionError({
+                            code: "INTERNAL_SERVER_ERROR",
+                            message: "No se pudo obtener el ID del artículo guardado.",
+                        });
+                    }
+
+                    const authorRows: Array<{
+                        idUsuario: number;
+                        idArticulo: number;
+                        rol: "autor" | "coautor";
+                    }> = [
+                        {
+                            idUsuario: currentUser.idUsuario,
+                            idArticulo: articuloId,
+                            rol: "autor",
+                        },
+                    ];
+
+                    for (const coauthorId of coauthorIds) {
+                        authorRows.push({
+                            idUsuario: coauthorId,
+                            idArticulo: articuloId,
+                            rol: "coautor",
+                        });
+                    }
+
+                    await tx.insert(coautores).values(authorRows);
+                });
+
+                return {
+                    success: true,
+                    message: "Artículo subido correctamente.",
+                };
+            } catch (error) {
+                if (error instanceof ActionError) {
+                    throw error;
+                }
+
+                console.error(error);
+                throw new ActionError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Error al guardar en la base de datos.",
+                });
+            }
+        },
+    }),
+    getEsUsuario: defineAction({
+        input: z.object({
+            id: z.number().int(),
+        }),
+        handler: async (input) => {
+            const [existeUsuario] = await db
+                .select()
+                .from(usuario)
+                .where(eq(usuario.idUsuario, input.id))
+                .limit(1);
+
+            return existeUsuario;
+        },
+    }),
 
 };
+
+void server;
+
