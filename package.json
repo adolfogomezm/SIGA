@@ -1,5 +1,5 @@
 {
-  "name": "",
+  "name": "SIGA",
   "type": "module",
   "version": "0.0.1",
   "engines": {
@@ -13,8 +13,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.2",
-    "astro": "^6.1.4",
-    "dev": "^0.1.3",
+    "astro": "^6.1.6",
     "drizzle-orm": "^0.45.2",
     "mysql2": "^3.20.0",
     "tailwindcss": "^4.2.2"
