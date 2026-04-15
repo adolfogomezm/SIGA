@@ -3,10 +3,17 @@ import Main from '../../layouts/Main.astro'
 import Sidebar from '../../components/Sidebar.astro'
 import CardContainer from "../../components/CardContainer.astro";
 import Estados from '../../components/Estados.astro';
+import TableArticulos from '../../components/tableArticulos.astro';
 ---
 <Main>
     <Sidebar role="autor" />
     <main slot="main" class="p-8 w-full bg-[#F3F2F3] min-h-screen">
+        <div class="fixed right-8 bottom-8 right-10 z-1000 bg-siga-red-normal p-4 shadow-lg w-fit text-white lg:w-1/4 lg:text-center">
+            <a href="subirArticulo">
+                +Subir Nuevo Articulo
+            </a>
+        </div>
         <Estados />
+        <TableArticulos/>
     </main>
 </Main>

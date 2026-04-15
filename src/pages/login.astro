@@ -72,6 +72,13 @@ import CardContainer from '../components/CardContainer.astro';
         if(data.usuario.rol === 'autor'){
             window.location.href ='autor';
         }
+        if(data.usuario.rol === 'administrador'){
+            window.location.href ='administrador';
+        }
+        if(data.usuario.rol === 'revisor'){
+            window.location.href ='revisor';
+        }
+
 
     });
 </script>

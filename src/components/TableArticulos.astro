@@ -1,0 +1,95 @@
+---
+import '../styles/global.css'
+
+
+---
+
+<div class="w-full p-10">
+    <table class="w-full border-collapse">
+        <thead class="hidden lg:table-header-group">
+        <tr class="bg-[#6B1B32] text-white">
+            <th class="px-6 py-4 font-bold uppercase text-sm text-left">ID</th>
+            <th class="px-6 py-4 font-bold uppercase text-sm text-left">Título</th>
+            <th class="px-6 py-4 font-bold uppercase text-sm text-center">Fecha Envío</th>
+            <th class="px-6 py-4 font-bold uppercase text-sm text-center">Estado</th>
+            <th class="px-6 py-4 font-bold uppercase text-sm text-center">Acciones</th>
+        </tr>
+        </thead>
+
+        <tbody class="block lg:table-row-group">
+        </tbody>
+    </table>
+</div>
+
+
+<script>
+    import { actions } from 'astro:actions';
+
+    const tableBody = document.querySelector('tbody');
+
+    const statusColors = {
+        'Enviado': '#6B1B32',
+        'En Revision': '#B57331',
+        'Aprobados': '#2D7A32',
+        'Rechazados': '#c83e2b',
+    };
+
+    function addRow(data) {
+        const statusColor = statusColors[data.status] || '#6B1B32';
+        const isEven = tableBody.children.length % 2 !== 0;
+        const bgClass = isEven ? 'bg-[#F3F2F3]' : 'bg-white';
+
+        const rowHTML = `
+        <tr class="block lg:table-row ${bgClass} border-b mb-4 lg:mb-0 shadow-sm lg:shadow-none">
+            <td class="flex justify-between lg:table-cell px-6 py-3 lg:py-4 border-b lg:border-none">
+                <span class="lg:hidden font-bold text-[#6B1B32] uppercase text-xs">ID</span>
+                <span>${data.id}</span>
+            </td>
+            <td class="flex justify-between lg:table-cell px-6 py-3 lg:py-4 border-b lg:border-none">
+                <span class="lg:hidden font-bold text-[#6B1B32] uppercase text-xs">Título</span>
+                <span class="text-right lg:text-left">${data.title}</span>
+            </td>
+            <td class="flex justify-between lg:table-cell px-6 py-3 lg:py-4 border-b lg:border-none text-center">
+                <span class="lg:hidden font-bold text-[#6B1B32] uppercase text-xs text-left">Fecha</span>
+                <span>${data.date}</span>
+            </td>
+            <td class="flex flex-col lg:table-cell px-6 py-4 border-b lg:border-none text-center">
+                <span class="lg:hidden font-bold text-[#6B1B32] uppercase text-xs text-left mb-2">Estado</span>
+                <span class="text-white px-8 py-2 rounded-sm font-bold text-xs inline-block w-full lg:w-40 uppercase mx-auto" 
+                      style="background-color: ${statusColor}">
+                    ${data.status}
+                </span>
+            </td>
+            <td class="flex justify-between lg:table-cell px-6 py-4 text-center">
+                <span class="lg:hidden font-bold text-[#6B1B32] uppercase text-xs text-left">Acción</span>
+                <button class="bg-[#D8CED1] text-gray-700 px-6 py-2 rounded-sm text-sm w-full lg:w-auto hover:bg-gray-300 transition-colors" 
+                        onclick="viewDetail('${data.id}')">
+                    Ver
+                </button>
+            </td>
+        </tr>
+    `;
+
+        tableBody.insertAdjacentHTML('beforeend', rowHTML);
+    }
+
+    async function getData(){
+        const { data, error } = await actions.getArticulos();
+        if(error){
+            console.error(error);
+            return {};
+        }
+        for(let element of data){
+            console.log(element);
+            addRow({
+                id: element.articulo.idArticulo,
+                title: element.articulo.titulo,
+                date: new Date(element.articulo.date).toLocaleDateString(),
+                status: element.articulo.estado,
+            });
+        }
+    }
+
+    getData()
+
+</script>

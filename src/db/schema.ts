@@ -17,6 +17,8 @@ export const articulo = mysqlTable("articulo", {
     titulo: varchar("titulo", { length: 45 }),
     ruta: varchar("ruta", { length: 255 }),
     area: mysqlEnum("area", ["area_1","area_2","area_3"]),
+    estado: mysqlEnum("estado", ["En Revision", "Aprovados", "Rechazados","Enviado"]),
+    date: timestamp("date").defaultNow(),
 });
 
 export const coautores = mysqlTable("coautores", {
