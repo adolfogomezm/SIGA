@@ -2,8 +2,18 @@
 import Main from '../../layouts/Main.astro';
 import Sidebar from "../../components/Sidebar.astro";
 import CardContainer from '../../components/CardContainer.astro';
-import RevisorDisponible from '../../components/RevisorDisponible.astro';
-import RevisorAsignadoSlot from '../../components/RevisorAsignadoSlot.astro';
+import { actions } from 'astro:actions';
+
+const idStr = Astro.url.searchParams.get('id');
+const id = idStr ? Number(idStr) : 0;
+const { data: articuloData, error } = await Astro.callAction(actions.getArticuloById, { id });
+const { data: revisores, error: errRev } = await Astro.callAction(actions.getRevisoresDisponibles, {});
+const { data: asignados, error: errAsig } = await Astro.callAction(actions.getRevisoresAsignados, { idArticulo: id });
+const articleIdFormatted = id.toString().padStart(3, '0');
+const areaLabel = articuloData?.articulo.area === 'area_1' ? 'Área 1' : articuloData?.articulo.area === 'area_2' ? 'Área 2' : 'Área 3';
+
+const assignedIds = new Set(asignados?.map(a => a.idUsuario) || []);
+const disponibles = revisores?.filter(r => !assignedIds.has(r.idUsuario)) || [];
 ---
 
 <Main>
@@ -11,42 +21,244 @@ import RevisorAsignadoSlot from '../../components/RevisorAsignadoSlot.astro';
 
     <main slot="main" class="p-8 w-full bg-[#F3F2F3] min-h-screen">
         <div>
+            <a href="/administrador/todosLosArticulos" class="text-[#5F1333] hover:underline font-medium mb-4 inline-block">&larr; Regresar</a>
             <h1 class="text-3xl font-bold text-[#5F1333] mb-8 uppercase tracking-tight">
-                Asignar Revisores — E-001
+                Asignar Revisores — E-{articleIdFormatted}
             </h1>
 
             <CardContainer class="mb-8">
                 <div class="grid grid-cols-[120px_1fr] gap-y-4 py-2">
                     <span class="font-bold text-gray-700">Título:</span>
-                    <span class="text-gray-600">[Título del artículo]</span>
+                    <span class="text-gray-600">{articuloData?.articulo.titulo || '[Título del artículo]'}</span>
 
                     <span class="font-bold text-gray-700">Área:</span>
-                    <span class="text-gray-600">[Área de conocimiento]</span>
+                    <span class="text-gray-600">{areaLabel}</span>
+
+                    <span class="font-bold text-gray-700">Estado:</span>
+                    <span class="text-gray-600">{articuloData?.articulo.estado || 'N/A'}</span>
                 </div>
             </CardContainer>
 
-            <div class="grid grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Revisores disponibles -->
                 <CardContainer>
                     <h2 class="text-[#5F1333] font-bold mb-6 text-lg">Revisores Disponibles</h2>
-
-                    <RevisorDisponible nombre="Dr. Revisor 1" />
-                    <RevisorDisponible nombre="Dra. Revisor 2" />
-                    <RevisorDisponible nombre="Dr. Revisor 3" />
-                    <RevisorDisponible nombre="Dra. Revisor 4" />
+                    { disponibles.length > 0 ? (
+                        <div class="space-y-3" id="disponiblesList">
+                            {disponibles.map(r => (
+                                <div class="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 hover:bg-gray-100 transition-colors">
+                                    <div>
+                                        <p class="font-bold text-gray-800">USR-{String(r.idUsuario).padStart(4, '0')} — {r.nombre || 'Sin nombre'}</p>
+                                        <p class="text-xs text-gray-500">{r.correo || ''} · {r.area === 'area_1' ? 'Área 1' : r.area === 'area_2' ? 'Área 2' : 'Área 3'}</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        class="btn-asignar-revisor bg-[#5F1333] text-white px-4 py-2 text-sm font-bold rounded hover:bg-[#4a0e28] transition-colors"
+                                        data-id-revisor={r.idUsuario}
+                                        data-id-articulo={id}
+                                    >
+                                        + Asignar
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p class="text-gray-500 text-center py-4">No hay revisores disponibles. Todos ya están asignados o no existen usuarios con rol de revisor.</p>
+                    )}
                 </CardContainer>
 
+                <!-- Revisores asignados -->
                 <CardContainer>
-                    <h2 class="text-[#5F1333] font-bold mb-6 text-lg">Revisores Asignados (0/3)</h2>
+                    <h2 class="text-[#5F1333] font-bold mb-6 text-lg" id="asignadosTitle">Revisores Asignados ({asignados?.length || 0}/3)</h2>
 
-                    <RevisorAsignadoSlot texto="Revisor 1 — Sin asignar" />
-                    <RevisorAsignadoSlot texto="Revisor 2 — Sin asignar" />
-                    <RevisorAsignadoSlot texto="Revisor 3 — Sin asignar" />
+                    { asignados && asignados.length > 0 ? (
+                        <div class="space-y-3" id="asignadosList">
+                            {asignados.map((a, i) => (
+                                <div class="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-4 py-3">
+                                    <div>
+                                        <p class="font-bold text-gray-800">Revisor {i + 1}: {a.nombre || 'Sin nombre'}</p>
+                                        <p class="text-xs text-gray-500">
+                                            Dictamen: <span class={`font-bold ${a.dictamen === 'aprobado' ? 'text-green-700' : a.dictamen === 'rechazado' ? 'text-red-700' : 'text-amber-600'}`}>{a.dictamen === 'revision' ? 'Pendiente' : a.dictamen}</span>
+                                        </p>
+                                    </div>
+                                    { a.dictamen === 'revision' && (
+                                        <button
+                                            type="button"
+                                            class="btn-remover-revisor bg-red-600 text-white px-3 py-1 text-xs font-bold rounded hover:bg-red-700 transition-colors"
+                                            data-id-revisor={a.idUsuario}
+                                            data-id-articulo={id}
+                                        >
+                                            ✕ Quitar
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div class="space-y-3" id="asignadosList">
+                            <div class="bg-gray-100 border border-dashed border-gray-300 rounded-lg px-4 py-3 text-center text-gray-400">
+                                Sin revisores asignados
+                            </div>
+                        </div>
+                    )}
 
-                    <button class="w-full bg-[#5F1333] text-white py-4 mt-4 font-bold uppercase tracking-widest hover:bg-[#4a0e28] transition-all">
-                        Confirmar Asignación
+                    <button id="btn-confirmar" data-id={id} class="w-full bg-[#5F1333] text-white py-4 mt-6 font-bold uppercase tracking-widest hover:bg-[#4a0e28] transition-all disabled:opacity-50">
+                        Confirmar y Pasar a Revisión
                     </button>
+                    <p class="text-xs text-gray-400 text-center mt-2">Esto cambiará el estado del artículo a "En Revisión"</p>
                 </CardContainer>
             </div>
+
+            <!-- Buscar usuario para promover a revisor y asignar -->
+            <CardContainer class="mt-8">
+                <h2 class="text-[#5F1333] font-bold mb-2 text-lg">¿No encuentras un revisor? Agrega uno</h2>
+                <p class="text-sm text-gray-500 mb-4">Busca cualquier usuario por ID o nombre. Se le cambiará el rol a "revisor" y se asignará a este artículo.</p>
+                
+                <div class="flex gap-2 mb-3">
+                    <input type="text" id="searchNewRevisor" placeholder="Buscar por ID o nombre..." class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5F1333] text-sm" />
+                    <button type="button" id="btnSearchNewRevisor" class="px-4 py-2 bg-[#5F1333] text-white rounded-md font-bold hover:bg-[#4a0e28] transition-colors text-sm">
+                        Buscar
+                    </button>
+                </div>
+
+                <div id="searchNewResults" class="hidden border border-gray-200 rounded-md bg-white max-h-60 overflow-y-auto shadow-sm"></div>
+            </CardContainer>
         </div>
     </main>
 </Main>
+
+<script>
+    import { actions } from 'astro:actions';
+
+    // Assign reviewer buttons
+    document.querySelectorAll('.btn-asignar-revisor').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const button = e.currentTarget as HTMLButtonElement;
+            const idRevisor = Number(button.dataset.idRevisor);
+            const idArticulo = Number(button.dataset.idArticulo);
+            if (!idRevisor || !idArticulo) return;
+
+            button.disabled = true;
+            button.textContent = '...';
+
+            const { error } = await actions.asignarRevisor({ idArticulo, idRevisor });
+            if (error) {
+                alert('Error: ' + error.message);
+                button.disabled = false;
+                button.textContent = '+ Asignar';
+            } else {
+                window.location.reload();
+            }
+        });
+    });
+
+    // Remove reviewer buttons
+    document.querySelectorAll('.btn-remover-revisor').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const button = e.currentTarget as HTMLButtonElement;
+            const idRevisor = Number(button.dataset.idRevisor);
+            const idArticulo = Number(button.dataset.idArticulo);
+            if (!idRevisor || !idArticulo) return;
+
+            if (!confirm('¿Quitar este revisor del artículo?')) return;
+
+            const { error } = await actions.removerRevisor({ idArticulo, idRevisor });
+            if (error) {
+                alert('Error: ' + error.message);
+            } else {
+                window.location.reload();
+            }
+        });
+    });
+
+    // Confirm assignment → change article status to "En Revision"
+    const btnConfirmar = document.getElementById('btn-confirmar');
+    btnConfirmar?.addEventListener('click', async () => {
+        const id = Number((btnConfirmar as HTMLButtonElement).dataset.id);
+        if (!id) return;
+
+        const { error } = await actions.updateArticuloEstado({
+            idArticulo: id,
+            estado: 'En Revision'
+        });
+
+        if (!error) {
+            window.location.href = '/administrador/todosLosArticulos';
+        } else {
+            console.error(error);
+            alert('Error al cambiar el estado del artículo.');
+        }
+    });
+
+    // ===== Search any user to promote to reviewer + assign =====
+    const searchNewInput = document.getElementById('searchNewRevisor') as HTMLInputElement;
+    const btnSearchNew = document.getElementById('btnSearchNewRevisor')!;
+    const searchNewResults = document.getElementById('searchNewResults')!;
+
+    // Get the article ID from the confirm button
+    const articuloIdForAssign = Number((document.getElementById('btn-confirmar') as HTMLButtonElement)?.dataset.id);
+
+    async function searchNewRevisor() {
+        const query = searchNewInput.value.trim();
+        if (!query) return;
+
+        const { data, error } = await actions.buscarColaboradores({ query });
+        if (error) { alert('Error: ' + error.message); return; }
+        if (!data || data.length === 0) {
+            searchNewResults.innerHTML = '<div class="p-3 text-gray-500 text-sm">No se encontraron resultados.</div>';
+            searchNewResults.classList.remove('hidden');
+            return;
+        }
+
+        searchNewResults.innerHTML = '';
+        data.forEach(u => {
+            const row = document.createElement('div');
+            row.className = 'p-3 hover:bg-gray-100 cursor-pointer border-b last:border-b-0 flex justify-between items-center transition-colors';
+            row.innerHTML = `
+                <div>
+                    <span class="font-bold text-[#5F1333]">USR-${String(u.idUsuario).padStart(4,'0')}</span>
+                    <span class="text-gray-800 ml-2">${u.nombre || ''}</span>
+                    <span class="text-gray-400 text-xs ml-2">${u.correo || ''}</span>
+                </div>
+                <button type="button" class="bg-purple-700 text-white px-3 py-1 text-xs font-bold rounded hover:bg-purple-800 transition-colors">
+                    Hacer Revisor y Asignar
+                </button>
+            `;
+            const btn = row.querySelector('button')!;
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                (btn as HTMLButtonElement).disabled = true;
+                btn.textContent = 'Procesando...';
+
+                // Step 1: Change their role to "revisor"
+                const { error: errRol } = await actions.cambiarRolUsuario({ idUsuario: u.idUsuario, nuevoRol: 'revisor' });
+                if (errRol) {
+                    alert('Error al cambiar rol: ' + errRol.message);
+                    (btn as HTMLButtonElement).disabled = false;
+                    btn.textContent = 'Hacer Revisor y Asignar';
+                    return;
+                }
+
+                // Step 2: Assign them to this article
+                const { error: errAsig } = await actions.asignarRevisor({ idArticulo: articuloIdForAssign, idRevisor: u.idUsuario });
+                if (errAsig) {
+                    alert('Rol cambiado a revisor, pero error al asignar: ' + errAsig.message);
+                } else {
+                    alert(`${u.nombre} ahora es revisor y fue asignado a este artículo.`);
+                }
+                window.location.reload();
+            });
+            searchNewResults.appendChild(row);
+        });
+        searchNewResults.classList.remove('hidden');
+    }
+
+    btnSearchNew.addEventListener('click', searchNewRevisor);
+    searchNewInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); searchNewRevisor(); }});
+
+    document.addEventListener('click', (e) => {
+        if (!searchNewInput.contains(e.target as Node) && !searchNewResults.contains(e.target as Node) && !btnSearchNew.contains(e.target as Node)) {
+            searchNewResults.classList.add('hidden');
+        }
+    });
+</script>

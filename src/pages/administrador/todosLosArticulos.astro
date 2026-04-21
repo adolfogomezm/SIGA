@@ -3,18 +3,22 @@ import Main from '../../layouts/Main.astro';
 import Sidebar from "../../components/Sidebar.astro";
 import CardContainer from '../../components/CardContainer.astro';
 import ArticleRow from '../../components/ArticleRow.astro';
+import { actions } from 'astro:actions';
+
+const { data: articulos, error } = await Astro.callAction(actions.getAllArticulos, {});
 ---
 
 <Main>
     <Sidebar role="administrador" />
-    <main slot="main" class="p-8 w-full bg-[#F3F2F3] min-h-screen h-[200vh]">
+    <main slot="main" class="p-8 w-full bg-[#F3F2F3] min-h-screen">
         <div>
-            <h1 class="text-4xl font-bold text-[#5F1333] mb-8 mb-8">Gestión de Artículos</h1>
+            <h1 class="text-4xl font-bold text-[#5F1333] mb-8">Gestión de Artículos</h1>
 
             <CardContainer class="mb-6">
                 <div class="flex items-center justify-between gap-4">
                     <div class="flex-1">
                         <input
+                                id="searchInput"
                                 type="text"
                                 placeholder="Buscar por título o autor..."
                                 class="w-full p-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-[#5F1333]"
@@ -23,16 +27,14 @@ import ArticleRow from '../../components/ArticleRow.astro';
 
                     <div class="flex items-center gap-2">
                         <span class="text-gray-600">Filtrar por estado:</span>
-                        <select class="bg-gray-100 p-2 border-r-8 border-transparent font-medium">
-                            <option>Todos</option>
-                            <option>En Revisión</option>
-                            <option>Aprobado</option>
+                        <select id="filterSelect" class="bg-gray-100 p-2 border-r-8 border-transparent font-medium">
+                            <option value="todos">Todos</option>
+                            <option value="en revision">En Revisión</option>
+                            <option value="aprobados">Aprobado</option>
+                            <option value="enviado">Enviado</option>
+                            <option value="rechazados">Rechazados</option>
                         </select>
                     </div>
-
-                    <button class="bg-[#5F1333] text-white px-6 py-2 font-bold flex items-center gap-2 hover:bg-[#4a0e28]">
-                        <span>+</span> Alta Artículo
-                    </button>
                 </div>
             </CardContainer>
 
@@ -44,42 +46,59 @@ import ArticleRow from '../../components/ArticleRow.astro';
                         <th class="p-4 uppercase text-sm">Título</th>
                         <th class="p-4 uppercase text-sm">Autor</th>
                         <th class="p-4 uppercase text-sm">Estado</th>
-                        <th class="p-4 uppercase text-sm text-center">Revisores</th>
-                        <th class="p-4 uppercase text-sm">Acciones</th>
+                        <th class="p-4 uppercase text-sm text-center">Acciones</th>
                     </tr>
                     </thead>
-                    <tbody class="bg-gray-50/50">
-                    <ArticleRow
-                            id="E-001"
-                            titulo="Título del artículo..."
-                            autor="Nombre Autor"
-                            estado="EN REVISIÓN"
-                            revisores="2/3"
-                    />
-                    <ArticleRow
-                            id="E-002"
-                            titulo="Título del artículo..."
-                            autor="Nombre Autor"
-                            estado="ENVIADO"
-                            revisores="0/3"
-                    />
-                    <ArticleRow
-                            id="E-003"
-                            titulo="Título del artículo..."
-                            autor="Nombre Autor"
-                            estado="APROBADO"
-                            revisores="3/3"
-                    />
-                    <ArticleRow
-                            id="E-004"
-                            titulo="Título del artículo..."
-                            autor="Nombre Autor"
-                            estado="BAJA"
-                            revisores="—"
-                    />
+                    <tbody id="tableBody" class="bg-gray-50/50">
+                    {
+                        articulos?.map((item) => {
+                            const isEnviado = item.articulo.estado === 'Enviado';
+                            const url = isEnviado
+                                ? `/administrador/asignarRevisores?id=${item.articulo.idArticulo}`
+                                : `/administrador/aprobacionFinal?id=${item.articulo.idArticulo}`;
+
+                            return (
+                                <ArticleRow
+                                        id={`E-${item.articulo.idArticulo.toString().padStart(4, '0')}`}
+                                        titulo={item.articulo.titulo}
+                                        autor={item.autor}
+                                        estado={item.articulo.estado?.toUpperCase()}
+                                        revisores="—"
+                                        href={url}
+                                />
+                            );
+                        })
+                    }
                     </tbody>
                 </table>
             </div>
         </div>
     </main>
 </Main>
+
+<script>
+    const searchInput = document.getElementById('searchInput') as HTMLInputElement | null;
+    const filterSelect = document.getElementById('filterSelect') as HTMLSelectElement | null;
+    const tableBody = document.getElementById('tableBody') as HTMLTableSectionElement | null;
+
+    function filterTable() {
+        const text = searchInput?.value.toLowerCase() || '';
+        const status = filterSelect?.value.toLowerCase() || 'todos';
+        const rows = tableBody?.querySelectorAll('tr');
+        
+        rows?.forEach(row => {
+            const rowText = row.textContent?.toLowerCase() || '';
+            const matchesText = rowText.includes(text);
+            const matchesStatus = status === 'todos' || rowText.includes(status);
+            
+            if (matchesText && matchesStatus) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    searchInput?.addEventListener('input', filterTable);
+    filterSelect?.addEventListener('change', filterTable);
+</script>
