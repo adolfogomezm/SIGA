@@ -2,18 +2,21 @@
 import '../styles/global.css'
 ---
 <div class="bg-white p-6 md:p-8 rounded-lg shadow-md border border-gray-200 w-full min-h-full">
-    <form id="articleForm">
-        <div class="mb-6">
+    <form id="articleForm" novalidate>
+        <div class="mb-6 relative">
             <label for="title" class="block text-base font-bold text-gray-800 mb-2">Título del artículo</label>
             <input type="text" id="title" name="title" required placeholder="Ingrese el título completo..." class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#621634]">
+            <span id="titleErr" class="text-red-500 text-sm hidden absolute -bottom-6 left-0">El título es requerido y debe contener al menos 5 caracteres.</span>
         </div>
 
-        <div class="mb-6">
+        <div class="mb-6 mt-10 relative">
             <label for="abstract" class="block text-base font-bold text-gray-800 mb-2">Abstract (máx. 250 palabras)</label>
             <textarea id="abstract" name="abstract" required placeholder="Resumen del contenido..." class="w-full px-4 py-2 h-36 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#621634] resize-none"></textarea>
+            <span id="abstractErr" class="text-red-500 text-sm hidden absolute -bottom-6 left-0">El abstract es requerido y no debe superar las 250 palabras.</span>
+            <span id="abstractCount" class="text-gray-400 text-sm absolute bottom-2 right-4 pointer-events-none">0/250</span>
         </div>
 
-        <div class="mb-6">
+        <div class="mb-6 mt-10 relative">
             <label for="area" class="block text-base font-bold text-gray-800 mb-2">Área de investigación</label>
             <select id="area" name="area" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#621634]">
                 <option value="" disabled selected>Seleccione un área</option>
@@ -21,30 +24,62 @@ import '../styles/global.css'
                 <option value="area_2">Área 2</option>
                 <option value="area_3">Área 3</option>
             </select>
+            <span id="areaErr" class="text-red-500 text-sm hidden absolute -bottom-6 left-0">Debes seleccionar un área temática.</span>
         </div>
 
-        <div class="mb-6">
-            <label class="block text-base font-bold text-gray-800 mb-2">Coautores (máx. 3)</label>
-            <p class="text-sm text-gray-500 mb-3">Ingresa el ID de usuario de cada coautor registrado.</p>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <input type="number" min="1" step="1" name="coauthors" aria-label="ID del coautor 1" placeholder="ID del coautor 1" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#621634]">
-                <input type="number" min="1" step="1" name="coauthors" aria-label="ID del coautor 2" placeholder="ID del coautor 2" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#621634]">
-                <input type="number" min="1" step="1" name="coauthors" aria-label="ID del coautor 3" placeholder="ID del coautor 3" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#621634]">
+        <!-- ===== COLABORADORES (RF-15 a RF-18) ===== -->
+        <div class="mb-6 mt-10">
+            <label class="block text-base font-bold text-gray-800 mb-2">Colaboradores (máx. 3)</label>
+            <p class="text-sm text-gray-500 mb-3">Busca por código de usuario o por nombre. Si el colaborador no existe, puedes registrarlo aquí mismo.</p>
+            
+            <!-- Colaboradores añadidos -->
+            <div id="coauthorsList" class="flex flex-col gap-2 mb-4"></div>
+            <p id="coauthorLimitMsg" class="text-amber-600 font-bold text-sm hidden mb-3">⚠️ Se alcanzó el límite de 3 colaboradores.</p>
+
+            <!-- Barra de búsqueda -->
+            <div id="searchWrapper" class="relative">
+                <div class="flex gap-2">
+                    <input type="text" id="coauthorSearch" placeholder="Buscar por ID o nombre..." class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#621634]">
+                    <button type="button" id="btnSearchCoauthor" class="px-4 py-2 bg-[#621634] text-white rounded-md font-bold hover:bg-[#501029] transition-colors text-sm">Buscar</button>
+                </div>
+                <!-- Resultados de búsqueda -->
+                <div id="searchResults" class="hidden absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto"></div>
+            </div>
+
+            <!-- Botón registrar nuevo -->
+            <button type="button" id="btnShowRegister" class="mt-3 text-sm text-[#621634] font-bold underline hover:text-[#501029] transition-colors">
+                ¿No encuentras al colaborador? Regístralo aquí
+            </button>
+
+            <!-- Formulario de registro rápido (RF-17) -->
+            <div id="quickRegisterForm" class="hidden mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                <h3 class="font-bold text-gray-800 mb-3">Registro rápido de colaborador</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input type="text" id="regNombre" placeholder="Nombre completo" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#621634] text-sm">
+                    <input type="email" id="regCorreo" placeholder="Correo electrónico" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#621634] text-sm">
+                    <input type="text" id="regInstitucion" placeholder="Institución" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#621634] text-sm">
+                    <input type="password" id="regPassword" placeholder="Contraseña (4-6 car.)" maxlength="6" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#621634] text-sm">
+                </div>
+                <div class="flex gap-2 mt-3">
+                    <button type="button" id="btnCancelRegister" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md font-medium text-sm hover:bg-gray-400 transition-colors">Cancelar</button>
+                    <button type="button" id="btnConfirmRegister" class="px-4 py-2 bg-green-700 text-white rounded-md font-bold text-sm hover:bg-green-800 transition-colors">Registrar y Añadir</button>
+                </div>
             </div>
         </div>
 
-        <div class="mb-6">
+        <div class="mb-6 mt-10 relative">
             <label class="block text-base font-bold text-gray-800 mb-2">Archivo del artículo (PDF)</label>
             <div id="dropZone" class="w-full p-6 border-2 border-dashed border-gray-300 rounded-md bg-gray-50 flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
                 <span class="text-3xl mb-2">📎</span>
                 <p id="dropZoneText" class="text-sm text-gray-600 font-medium text-center">Arrastra tu archivo aquí o haz clic para seleccionar</p>
                 <input type="file" id="fileInput" name="file" accept=".pdf" class="hidden">
             </div>
+            <span id="fileErr" class="text-red-500 text-sm hidden absolute -bottom-6 left-0">Es obligatorio subir el documento PDF.</span>
         </div>
 
-        <div class="flex flex-col sm:flex-row gap-4 mt-8">
+        <div class="flex flex-col sm:flex-row gap-4 mt-12">
             <button type="button" id="cancelButton" class="px-6 py-2 bg-[#D1C9CC] text-gray-800 rounded-md font-medium hover:bg-[#BDB4B7] sm:w-auto w-full transition-colors">Cancelar</button>
-            <button type="submit" id="submitButton" class="px-6 py-2 bg-[#621634] text-white rounded-md font-bold uppercase hover:bg-[#501029] sm:w-auto w-full transition-colors">ENVIAR ARTÍCULO</button>
+            <button type="submit" id="submitButton" class="px-6 py-2 bg-[#621634] text-white rounded-md font-bold uppercase hover:bg-[#501029] sm:w-auto w-full transition-colors disabled:opacity-50">ENVIAR ARTÍCULO</button>
         </div>
     </form>
 </div>
@@ -58,95 +93,333 @@ import '../styles/global.css'
     const fileInput = document.querySelector<HTMLInputElement>('#fileInput');
     const dropZoneText = document.querySelector<HTMLElement>('#dropZoneText');
     const cancelButton = document.querySelector<HTMLButtonElement>('#cancelButton');
+    const submitButton = document.querySelector<HTMLButtonElement>('#submitButton');
 
-    if (!articleForm || !dropZone || !fileInput || !dropZoneText || !cancelButton) {
-        throw new Error('No se pudieron inicializar los controles del formulario de artículos.');
-    }
+    const titleInput = document.getElementById('title') as HTMLInputElement;
+    const abstractInput = document.getElementById('abstract') as HTMLTextAreaElement;
+    const areaSelect = document.getElementById('area') as HTMLSelectElement;
+    const titleErr = document.getElementById('titleErr');
+    const abstractErr = document.getElementById('abstractErr');
+    const areaErr = document.getElementById('areaErr');
+    const fileErr = document.getElementById('fileErr');
+    const abstractCount = document.getElementById('abstractCount');
 
-    const dropZoneTextElement = dropZoneText as HTMLElement;
+    // ===== Coauthor search elements =====
+    const coauthorsList = document.getElementById('coauthorsList')!;
+    const coauthorLimitMsg = document.getElementById('coauthorLimitMsg')!;
+    const coauthorSearch = document.getElementById('coauthorSearch') as HTMLInputElement;
+    const btnSearchCoauthor = document.getElementById('btnSearchCoauthor')!;
+    const searchResults = document.getElementById('searchResults')!;
+    const searchWrapper = document.getElementById('searchWrapper')!;
+    const btnShowRegister = document.getElementById('btnShowRegister')!;
+    const quickRegisterForm = document.getElementById('quickRegisterForm')!;
+    const btnCancelRegister = document.getElementById('btnCancelRegister')!;
+    const btnConfirmRegister = document.getElementById('btnConfirmRegister')!;
 
+    // ===== State =====
     let selectedFile: File | null = null;
+    let titleValid = false;
+    let abstractValid = false;
+    let areaValid = false;
 
-    function resetFileState() {
-        selectedFile = null;
-        dropZoneTextElement.innerText = "Arrastra tu archivo aquí o haz clic para seleccionar";
-        dropZoneTextElement.classList.remove('text-green-600', 'font-bold');
+    interface Coauthor {
+        idUsuario: number;
+        nombre: string | null;
+        correo: string | null;
+        institucion: string | null;
     }
+    const selectedCoauthors: Coauthor[] = [];
 
-    dropZone.addEventListener('click', () => fileInput.click());
+    // ===== Coauthor management (RF-15, RF-16, RF-18) =====
+    function renderCoauthors() {
+        coauthorsList.innerHTML = '';
+        selectedCoauthors.forEach((c, i) => {
+            const pill = document.createElement('div');
+            pill.className = 'flex items-center justify-between bg-[#f0e6ea] border border-[#621634] rounded-md px-4 py-2';
+            pill.innerHTML = `
+                <div>
+                    <span class="font-bold text-[#621634]">USR-${String(c.idUsuario).padStart(4,'0')}</span>
+                    <span class="text-gray-700 ml-2">${c.nombre || ''}</span>
+                    <span class="text-gray-400 text-sm ml-2">(${c.institucion || ''})</span>
+                </div>
+                <button type="button" data-idx="${i}" class="remove-coauthor text-red-600 font-bold text-lg hover:text-red-800 ml-4">&times;</button>
+            `;
+            coauthorsList.appendChild(pill);
+        });
 
-    dropZone.addEventListener('dragover', (e: DragEvent) => {
-        e.preventDefault();
-        dropZone.classList.add('border-gray-400', 'bg-gray-100');
-    });
-
-    dropZone.addEventListener('dragleave', () => {
-        dropZone.classList.remove('border-gray-400', 'bg-gray-100');
-    });
-
-    dropZone.addEventListener('drop', (e: DragEvent) => {
-        e.preventDefault();
-        dropZone.classList.remove('border-gray-400', 'bg-gray-100');
-        const files = e.dataTransfer?.files;
-
-        if (files && files.length > 0) {
-            handleFileSelection(files[0]);
-        }
-    });
-
-    fileInput.addEventListener('change', (e: Event) => {
-        const target = e.currentTarget;
-
-        if (target instanceof HTMLInputElement && target.files && target.files.length > 0) {
-            handleFileSelection(target.files[0]);
-        }
-    });
-
-    function handleFileSelection(file: File) {
-        if (file.type === 'application/pdf') {
-            selectedFile = file;
-            dropZoneTextElement.innerText = `Archivo: ${file.name}`;
-            dropZoneTextElement.classList.add('text-green-600', 'font-bold');
+        // RF-18: enforce limit
+        if (selectedCoauthors.length >= 3) {
+            coauthorLimitMsg.classList.remove('hidden');
+            searchWrapper.classList.add('hidden');
+            btnShowRegister.classList.add('hidden');
         } else {
-            alert('Solo se permiten archivos PDF.');
+            coauthorLimitMsg.classList.add('hidden');
+            searchWrapper.classList.remove('hidden');
+            btnShowRegister.classList.remove('hidden');
         }
+
+        // Remove handlers
+        coauthorsList.querySelectorAll('.remove-coauthor').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const idx = Number((e.currentTarget as HTMLElement).dataset.idx);
+                selectedCoauthors.splice(idx, 1);
+                renderCoauthors();
+            });
+        });
     }
 
-    cancelButton.addEventListener('click', () => {
-        articleForm.reset();
-        resetFileState();
-    });
+    function addCoauthor(c: Coauthor) {
+        if (selectedCoauthors.length >= 3) {
+            alert('No puedes añadir más de 3 colaboradores. (RF-18)');
+            return;
+        }
+        if (selectedCoauthors.some(x => x.idUsuario === c.idUsuario)) {
+            alert('Este colaborador ya está añadido.');
+            return;
+        }
+        selectedCoauthors.push(c);
+        renderCoauthors();
+        searchResults.classList.add('hidden');
+        coauthorSearch.value = '';
+    }
 
-    articleForm.addEventListener('submit', async (e: SubmitEvent) => {
-        e.preventDefault();
+    // ===== Search (RF-16) =====
+    async function doSearch() {
+        const query = coauthorSearch.value.trim();
+        if (!query) return;
 
-        if (!selectedFile) return alert('Debes subir un archivo PDF');
-
-        const formData = new FormData(articleForm);
-        const area = formData.get('area');
-
-        if (area !== 'area_1' && area !== 'area_2' && area !== 'area_3') {
-            alert('Selecciona un área válida.');
+        const { data, error } = await actions.buscarColaboradores({ query });
+        if (error) {
+            alert('Error buscando: ' + error.message);
+            return;
+        }
+        if (!data || data.length === 0) {
+            searchResults.innerHTML = '<div class="p-3 text-gray-500 text-sm">No se encontraron resultados.</div>';
+            searchResults.classList.remove('hidden');
             return;
         }
 
-        const articleArea = area as 'area_1' | 'area_2' | 'area_3';
+        // Check for homonyms — if multiple results share the same name, group by institution (RF-16)
+        const nameCount = new Map<string, number>();
+        data.forEach(u => {
+            const n = u.nombre || '';
+            nameCount.set(n, (nameCount.get(n) || 0) + 1);
+        });
 
-        const coauthorValues = formData.getAll('coauthors');
+        searchResults.innerHTML = '';
+        data.forEach(u => {
+            const hasHomonyms = (nameCount.get(u.nombre || '') || 0) > 1;
+            const row = document.createElement('div');
+            row.className = 'p-3 hover:bg-gray-100 cursor-pointer border-b last:border-b-0 flex justify-between items-center transition-colors';
+            row.innerHTML = `
+                <div>
+                    <span class="font-bold text-[#621634]">USR-${String(u.idUsuario).padStart(4,'0')}</span>
+                    <span class="text-gray-800 ml-2">${u.nombre || ''}</span>
+                    ${hasHomonyms ? `<span class="text-amber-700 text-xs ml-2 font-bold bg-amber-100 px-2 py-0.5 rounded">${u.institucion || 'Sin institución'}</span>` : ''}
+                </div>
+                <span class="text-gray-400 text-xs">${u.correo || ''}</span>
+            `;
+            row.addEventListener('click', () => addCoauthor(u));
+            searchResults.appendChild(row);
+        });
+        searchResults.classList.remove('hidden');
+    }
 
-        const coauthors: number[] = Array.from(new Set(
-            coauthorValues
-                .map((value) => typeof value === 'string' ? Number(value) : NaN)
-                .filter((value) => Number.isInteger(value) && value > 0)
-        ));
+    btnSearchCoauthor.addEventListener('click', doSearch);
+    coauthorSearch.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); doSearch(); }});
+
+    // Close search results on outside click
+    document.addEventListener('click', (e) => {
+        if (!searchWrapper.contains(e.target as Node)) {
+            searchResults.classList.add('hidden');
+        }
+    });
+
+    // ===== Quick register (RF-17) =====
+    btnShowRegister.addEventListener('click', () => {
+        quickRegisterForm.classList.toggle('hidden');
+    });
+    btnCancelRegister.addEventListener('click', () => {
+        quickRegisterForm.classList.add('hidden');
+    });
+    btnConfirmRegister.addEventListener('click', async () => {
+        const nombre = (document.getElementById('regNombre') as HTMLInputElement).value.trim();
+        const correo = (document.getElementById('regCorreo') as HTMLInputElement).value.trim();
+        const institucion = (document.getElementById('regInstitucion') as HTMLInputElement).value.trim();
+        const password = (document.getElementById('regPassword') as HTMLInputElement).value.trim();
+
+        if (!nombre || !correo || !institucion || password.length < 4) {
+            alert('Completa todos los campos del registro (contraseña mín. 4 caracteres).');
+            return;
+        }
+
+        const { data, error } = await actions.registrarColaboradorRapido({ nombre, correo, institucion, password });
+        if (error) {
+            alert('Error: ' + error.message);
+            return;
+        }
+        if (data) {
+            alert(`Colaborador "${data.nombre}" registrado con ID ${data.idUsuario}.`);
+            addCoauthor({ idUsuario: data.idUsuario, nombre: data.nombre, correo: data.correo, institucion: data.institucion });
+            quickRegisterForm.classList.add('hidden');
+            // Clear fields
+            (document.getElementById('regNombre') as HTMLInputElement).value = '';
+            (document.getElementById('regCorreo') as HTMLInputElement).value = '';
+            (document.getElementById('regInstitucion') as HTMLInputElement).value = '';
+            (document.getElementById('regPassword') as HTMLInputElement).value = '';
+        }
+    });
+
+    // ===== Existing validation logic =====
+    function resetFileState() {
+        selectedFile = null;
+        if(dropZoneText) {
+            dropZoneText.innerText = "Arrastra tu archivo aquí o haz clic para seleccionar";
+            dropZoneText.classList.remove('text-green-600', 'font-bold');
+        }
+    }
+
+    function checkFormValidity() {
+        titleValid = titleInput.value.trim().length >= 5;
+        const words = abstractInput.value.trim().split(/\s+/).filter(w => w.length > 0).length;
+        abstractValid = words > 0 && words <= 250;
+        areaValid = areaSelect.value !== '';
+    }
+
+    function validateTitle() {
+        titleValid = titleInput.value.trim().length >= 5;
+        if(!titleValid) {
+            titleInput.classList.add('border-red-500', 'focus:ring-red-500');
+            titleErr?.classList.remove('hidden');
+        } else {
+            titleInput.classList.remove('border-red-500', 'focus:ring-red-500');
+            titleErr?.classList.add('hidden');
+        }
+        checkFormValidity();
+    }
+    titleInput?.addEventListener('input', validateTitle);
+    titleInput?.addEventListener('blur', validateTitle);
+
+    function validateAbstract() {
+        const words = abstractInput.value.trim().split(/\s+/).filter(w => w.length > 0).length;
+        if(abstractCount) abstractCount.innerText = `${words}/250`;
+        abstractValid = words > 0 && words <= 250;
+        if(!abstractValid || abstractInput.value.trim() === '') {
+            abstractInput.classList.add('border-red-500', 'focus:ring-red-500');
+            abstractErr?.classList.remove('hidden');
+        } else {
+            abstractInput.classList.remove('border-red-500', 'focus:ring-red-500');
+            abstractErr?.classList.add('hidden');
+        }
+        checkFormValidity();
+    }
+    abstractInput?.addEventListener('input', validateAbstract);
+    abstractInput?.addEventListener('blur', validateAbstract);
+
+    function validateArea() {
+        areaValid = areaSelect.value !== '';
+        if(!areaValid) {
+            areaSelect.classList.add('border-red-500', 'focus:ring-red-500');
+            areaErr?.classList.remove('hidden');
+        } else {
+            areaSelect.classList.remove('border-red-500', 'focus:ring-red-500');
+            areaErr?.classList.add('hidden');
+        }
+        checkFormValidity();
+    }
+    areaSelect?.addEventListener('change', validateArea);
+    areaSelect?.addEventListener('blur', validateArea);
+
+    if (dropZone && fileInput && dropZoneText && cancelButton) {
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e: DragEvent) => { e.preventDefault(); dropZone.classList.add('border-gray-400', 'bg-gray-100'); });
+        dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('border-gray-400', 'bg-gray-100'); });
+        dropZone.addEventListener('drop', (e: DragEvent) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-gray-400', 'bg-gray-100');
+            const files = e.dataTransfer?.files;
+            if (files && files.length > 0) handleFileSelection(files[0]);
+        });
+        fileInput.addEventListener('change', (e: Event) => {
+            const target = e.currentTarget;
+            if (target instanceof HTMLInputElement && target.files && target.files.length > 0) handleFileSelection(target.files[0]);
+        });
+
+        function handleFileSelection(file: File) {
+            if (file.type === 'application/pdf') {
+                selectedFile = file;
+                dropZoneText.innerText = `Archivo: ${file.name}`;
+                dropZoneText.classList.add('text-green-600', 'font-bold');
+                dropZone.classList.remove('border-red-500');
+                fileErr?.classList.add('hidden');
+                checkFormValidity();
+            } else {
+                alert('Solo se permiten archivos PDF.');
+            }
+        }
+
+        cancelButton.addEventListener('click', () => {
+            articleForm?.reset();
+            resetFileState();
+            selectedCoauthors.length = 0;
+            renderCoauthors();
+        });
+    }
+
+    // ===== Submit =====
+    articleForm?.addEventListener('submit', async (e: SubmitEvent) => {
+        e.preventDefault();
+
+        validateTitle();
+        validateAbstract();
+        validateArea();
+        if(!selectedFile) {
+            dropZone?.classList.add('border-red-500');
+            fileErr?.classList.remove('hidden');
+        }
+
+        if (!titleValid || !abstractValid || !areaValid || !selectedFile) {
+            alert('Por favor, corrige los errores del formulario antes de enviarlo.');
+            return;
+        }
+
+        const formData = new FormData(articleForm);
+        const area = formData.get('area') as 'area_1' | 'area_2' | 'area_3';
+        const coauthors = selectedCoauthors.map(c => c.idUsuario);
+
+        if (submitButton) submitButton.disabled = true;
+
+        let uploadedRoute = '';
+        try {
+            const uploadData = new FormData();
+            uploadData.append('file', selectedFile);
+
+            const uploadRes = await fetch('/api/upload', {
+                method: 'POST',
+                body: uploadData
+            });
+
+            if (!uploadRes.ok) {
+                throw new Error('Falló la subida del documento.');
+            }
+            
+            const uploadResult = await uploadRes.json();
+            uploadedRoute = uploadResult.url;
+        } catch (err: any) {
+            alert(err.message);
+            if (submitButton) submitButton.disabled = false;
+            return;
+        }
 
         const { data, error } = await actions.subirArticulo({
             title: String(formData.get('title') ?? ''),
             abstract: String(formData.get('abstract') ?? ''),
-            area: articleArea,
-            route: '/docs/' + selectedFile.name,
+            area,
+            route: uploadedRoute,
             coauthors,
         });
+
+        if (submitButton) submitButton.disabled = false;
 
         if (error) {
             alert(error.message);
@@ -154,6 +427,9 @@ import '../styles/global.css'
             alert(data.message);
             articleForm.reset();
             resetFileState();
+            selectedCoauthors.length = 0;
+            renderCoauthors();
+            window.location.href = '/autor/articulos';
         }
     });
 </script>

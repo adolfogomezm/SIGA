@@ -2,57 +2,91 @@
 import Main from '../../layouts/Main.astro';
 import Sidebar from "../../components/Sidebar.astro";
 import CardContainer from '../../components/CardContainer.astro';
-import DictamenCard from '../../components/DictamenCard.astro';
+import { actions } from 'astro:actions';
+
+const idStr = Astro.url.searchParams.get('id');
+const id = idStr ? Number(idStr) : 0;
+const { data: articuloData, error: err } = await Astro.callAction(actions.getArticuloById, { id });
+const { data: evalData, error: errEval } = await Astro.callAction(actions.getEvaluacionesArticulo, { idArticulo: id });
+const articleIdFormatted = id.toString().padStart(4, '0');
 ---
 
 <Main>
     <Sidebar role="administrador" />
 
     <main slot="main" class="overflow-scroll p-8 w-full bg-[#F3F2F3] min-h-screen">
-        <div class="">
+        <div>
+            <a href="/administrador/todosLosArticulos" class="text-[#5F1333] hover:underline font-medium mb-4 inline-block">&larr; Regresar</a>
+
             <h1 class="text-3xl font-bold text-[#5F1333] mb-8 uppercase tracking-tight">
-                Aprobación Final — E-001
+                Aprobación Final — E-{articleIdFormatted}
             </h1>
 
             <CardContainer class="mb-6">
                 <div class="grid grid-cols-[100px_1fr] gap-y-4 py-2">
                     <span class="font-bold text-gray-700">Título:</span>
-                    <span class="text-gray-600">[Título del artículo]</span>
+                    <span class="text-gray-600">{articuloData?.articulo.titulo || '[Título del artículo]'}</span>
 
                     <span class="font-bold text-gray-700">Autor:</span>
-                    <span class="text-gray-600">[Nombre del autor]</span>
+                    <span class="text-gray-600">{articuloData?.autor || '[Nombre del autor]'}</span>
+                    
+                    <span class="font-bold text-gray-700">Área:</span>
+                    <span class="text-gray-600">{articuloData?.articulo.area || 'N/A'}</span>
                 </div>
             </CardContainer>
 
-            <h2 class="text-[#5F1333] font-bold mb-6 text-xl">Dictámenes de Revisores</h2>
+            <!-- RF-23: Evaluaciones recibidas con promedio -->
+            <h2 class="text-[#5F1333] font-bold mb-4 text-xl">Dictámenes de Revisores ({evalData?.total || 0}/3)</h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <DictamenCard
-                        revisor="Revisor 1"
-                        estado="APROBADO"
-                        observaciones="Observaciones del revisor..."
-                />
-                <DictamenCard
-                        revisor="Revisor 2"
-                        estado="APROBADO"
-                        observaciones="Observaciones del revisor..."
-                />
-                <DictamenCard
-                        revisor="Revisor 3"
-                        estado="APROBADO"
-                        observaciones="Observaciones del revisor..."
-                />
+            { evalData && evalData.total > 0 ? (
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                {evalData.evaluaciones.map((ev, i) => (
+                    <div class={`p-5 rounded-lg shadow-md border-t-4 ${ev.dictamen === 'aprobado' ? 'border-green-600 bg-green-50' : 'border-red-600 bg-red-50'}`}>
+                        <p class="font-bold text-gray-800 mb-2">Revisor {i + 1}</p>
+                        <p class="text-sm text-gray-500">{ev.nombre || 'Anónimo'}</p>
+                        <span class={`inline-block mt-3 px-4 py-1 rounded-sm font-bold text-xs uppercase text-white ${ev.dictamen === 'aprobado' ? 'bg-green-700' : 'bg-red-700'}`}>
+                            {ev.dictamen}
+                        </span>
+                        <div class="mt-3">
+                            <p class="text-sm text-gray-800 font-bold">Calificación: {ev.calificacion !== null ? ev.calificacion : -1}</p>
+                            <p class="text-xs text-gray-600 mt-1">Fecha de revisión: {ev.fechaRevision ? new Date(ev.fechaRevision).toLocaleDateString('es-MX') : 'N/A'}</p>
+                            {ev.comentarios && <p class="text-xs text-gray-500 mt-2 bg-white/50 p-2 rounded">{ev.comentarios}</p>}
+                        </div>
+                    </div>
+                ))}
             </div>
+
+            <CardContainer class="mb-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="font-bold text-gray-800 text-lg">Puntuación Promedio Final (RF-23)</p>
+                        <p class="text-sm text-gray-500">{evalData.aprobados} aprobación(es) · {evalData.rechazados} rechazo(s) de {evalData.total} evaluaciones</p>
+                    </div>
+                    <div class="text-center">
+                        <span class={`text-4xl font-bold ${evalData.promedio >= 3 ? 'text-green-700' : 'text-red-700'}`}>
+                            {evalData.promedio}
+                        </span>
+                        <p class={`text-sm font-bold mt-1 ${evalData.promedio >= 3 ? 'text-green-700' : 'text-red-700'}`}>
+                            {evalData.promedio >= 3 ? 'FAVORABLE' : 'DESFAVORABLE'}
+                        </p>
+                    </div>
+                </div>
+            </CardContainer>
+            ) : (
+            <CardContainer class="mb-6">
+                <p class="text-gray-500 text-center py-4">Aún no se han recibido evaluaciones para este artículo.</p>
+            </CardContainer>
+            )}
 
             <CardContainer>
                 <h2 class="text-[#5F1333] font-bold mb-6 text-lg">Decisión Final del Administrador:</h2>
 
                 <div class="flex gap-8">
-                    <button class="flex-1 bg-[#2D7A32] text-white py-4 font-bold uppercase flex items-center justify-center gap-3 hover:bg-[#245e28] transition-all shadow-md active:scale-[0.98]">
+                    <button id="btn-aprobar" data-id={id} class="flex-1 bg-[#2D7A32] text-white py-4 font-bold uppercase flex items-center justify-center gap-3 hover:bg-[#245e28] transition-all shadow-md active:scale-[0.98]">
                         <span class="text-xl">✔</span> APROBAR Y PUBLICAR
                     </button>
 
-                    <button class="flex-1 bg-[#C62828] text-white py-4 font-bold uppercase flex items-center justify-center gap-3 hover:bg-[#a51f1f] transition-all shadow-md active:scale-[0.98]">
+                    <button id="btn-rechazar" data-id={id} class="flex-1 bg-[#C62828] text-white py-4 font-bold uppercase flex items-center justify-center gap-3 hover:bg-[#a51f1f] transition-all shadow-md active:scale-[0.98]">
                         <span class="text-xl">✖</span> RECHAZAR ARTÍCULO
                     </button>
                 </div>
@@ -60,3 +94,30 @@ import DictamenCard from '../../components/DictamenCard.astro';
         </div>
     </main>
 </Main>
+
+<script>
+    import { actions } from 'astro:actions';
+
+    async function setEstado(id: number, estado: "Aprobados" | "Rechazados") {
+        if(!id) return;
+        const { error } = await actions.updateArticuloEstado({ idArticulo: id, estado });
+        if(!error) {
+            window.location.href = '/administrador/todosLosArticulos';
+        } else {
+            console.error(error);
+            alert('Error al cambiar el estado.');
+        }
+    }
+
+    const btnAprobar = document.getElementById('btn-aprobar');
+    btnAprobar?.addEventListener('click', () => {
+        const id = Number(btnAprobar.getAttribute('data-id'));
+        setEstado(id, 'Aprobados');
+    });
+
+    const btnRechazar = document.getElementById('btn-rechazar');
+    btnRechazar?.addEventListener('click', () => {
+        const id = Number(btnRechazar.getAttribute('data-id'));
+        setEstado(id, 'Rechazados');
+    });
+</script>

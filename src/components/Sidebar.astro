@@ -1,20 +1,21 @@
 ---
 import "../styles/global.css";
 
+const authorLinks = [
+    {text: "Mis Articulos", link: "/autor/articulos"},
+    {text: "Subir Artículo", link: "/autor/subirArticulo"},
+];
+
+const reviewerLinks = [
+    {text: "Artículos a Revisar", link: "/revisor"},
+];
+
 const menu = {
-    autor: [
-        {text: "Mis Articulos", link: "/autor/articulos"},
-        {text: "Subir Artículo", link: "/autor/subirArticulo"},
-    ],
-    revisor: [
-        {text: "Asignados", link: "/revisor/asignados"},
-        {text: "Revisados", link: "/revisor/revisados"},
-    ],
+    autor: authorLinks,
+    revisor: [...authorLinks, ...reviewerLinks],
     administrador: [
         {text: "Todos Los Artículos", link: "/administrador/todosLosArticulos"},
         {text: "Usuarios", link: "/administrador/usuarios"},
-        {text: "Asignar Revisores", link: "/administrador/asignarRevisores"},
-        {text: "Aprobación Final", link: "/administrador/aprobacionFinal"},
     ],
 };
 

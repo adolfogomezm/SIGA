@@ -8,7 +8,7 @@ export const usuario = mysqlTable("usuario", {
     password: varchar("password", { length: 6 }),
     rol: mysqlEnum("rol", ["autor", "revisor", "administrador"]),
     createdAt: timestamp("created_at").defaultNow(),
-    area: mysqlEnum("area", ["area_1","area_2","area_3"]),
+    area: mysqlEnum("area", ["area_1", "area_2", "area_3"]),
 });
 
 export const articulo = mysqlTable("articulo", {
@@ -16,8 +16,8 @@ export const articulo = mysqlTable("articulo", {
     abstract: varchar("abstract", { length: 255 }),
     titulo: varchar("titulo", { length: 45 }),
     ruta: varchar("ruta", { length: 255 }),
-    area: mysqlEnum("area", ["area_1","area_2","area_3"]),
-    estado: mysqlEnum("estado", ["En Revision", "Aprobados", "Rechazados","Enviado"]),
+    area: mysqlEnum("area", ["area_1", "area_2", "area_3"]),
+    estado: mysqlEnum("estado", ["En Revision", "Aprobados", "Rechazados", "Enviado"]),
     date: timestamp("date").defaultNow(),
 });
 
@@ -25,6 +25,10 @@ export const coautores = mysqlTable("coautores", {
     idUsuario: int("idUsuario").notNull().references(() => usuario.idUsuario),
     idArticulo: int("idArticulo").notNull().references(() => articulo.idArticulo),
     rol: mysqlEnum("rol", ["autor", "coautor"]),
+    dictamen: mysqlEnum("dictamen", ["aprobado", "rechazado", "revision"]),
+    comentarios: varchar("comentarios", { length: 255 }),
+    fechaRevision: timestamp("fechaRevision"),
+    calificacion: int("calificacion"),
 }, (table) => ({
     pk: primaryKey({ columns: [table.idUsuario, table.idArticulo] }),
 }));

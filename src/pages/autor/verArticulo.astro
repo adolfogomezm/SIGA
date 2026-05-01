@@ -1,0 +1,92 @@
+---
+import Main from '../../layouts/Main.astro';
+import Sidebar from "../../components/Sidebar.astro";
+import CardContainer from '../../components/CardContainer.astro';
+import { actions } from 'astro:actions';
+
+const idStr = Astro.url.searchParams.get('id');
+const id = idStr ? Number(idStr) : 0;
+const { data: articuloData, error: err } = await Astro.callAction(actions.getArticuloById, { id });
+const { data: evalData, error: errEval } = await Astro.callAction(actions.getEvaluacionesArticulo, { idArticulo: id });
+const articleIdFormatted = id.toString().padStart(4, '0');
+const areaLabel = articuloData?.articulo.area === 'area_1' ? 'Área 1' : articuloData?.articulo.area === 'area_2' ? 'Área 2' : 'Área 3';
+---
+
+<Main>
+    <Sidebar role="autor" />
+
+    <main slot="main" class="overflow-scroll p-8 w-full bg-[#F3F2F3] min-h-screen">
+        <div class="max-w-4xl mx-auto">
+            <a href="/autor/articulos" class="text-[#5F1333] hover:underline font-medium mb-4 inline-block">&larr; Regresar a mis artículos</a>
+
+            <h1 class="text-3xl font-bold text-[#5F1333] mb-8 uppercase tracking-tight">
+                Detalles del Artículo — E-{articleIdFormatted}
+            </h1>
+
+            <CardContainer class="mb-6">
+                <h2 class="text-[#5F1333] font-bold mb-4 text-xl">Información</h2>
+                <div class="grid grid-cols-[120px_1fr] gap-y-4 py-2">
+                    <span class="font-bold text-gray-700">Título:</span>
+                    <span class="text-gray-600">{articuloData?.articulo.titulo || 'Sin título'}</span>
+
+                    <span class="font-bold text-gray-700">Área:</span>
+                    <span class="text-gray-600">{areaLabel}</span>
+                    
+                    <span class="font-bold text-gray-700">Estado:</span>
+                    <span>
+                        <span class="bg-amber-600 text-white px-4 py-1 rounded-sm font-bold text-xs uppercase">
+                            {articuloData?.articulo.estado || 'Desconocido'}
+                        </span>
+                    </span>
+                    
+                    <span class="font-bold text-gray-700">Fecha Envío:</span>
+                    <span class="text-gray-600">{articuloData?.articulo.date ? new Date(articuloData.articulo.date).toLocaleDateString('es-MX') : 'N/A'}</span>
+                </div>
+                
+                { articuloData?.articulo.ruta && (
+                <div class="mt-6 flex justify-end">
+                    <a href={articuloData.articulo.ruta} target="_blank" class="bg-gray-200 text-gray-700 px-6 py-2 rounded font-bold hover:bg-gray-300 transition-colors flex items-center gap-2">
+                        <span>📄</span> Ver PDF Original
+                    </a>
+                </div>
+                )}
+            </CardContainer>
+
+            <h2 class="text-[#5F1333] font-bold mb-4 text-xl">Revisiones y Calificaciones</h2>
+
+            { evalData && evalData.total > 0 ? (
+            <div class="space-y-6">
+                {evalData.evaluaciones.map((ev, i) => (
+                    <CardContainer>
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="font-bold text-gray-800 text-lg">Revisor {i + 1}</p>
+                                <p class="text-sm text-gray-500">Fecha de revisión: {ev.fechaRevision ? new Date(ev.fechaRevision).toLocaleDateString('es-MX') : 'N/A'}</p>
+                            </div>
+                            <span class={`px-4 py-1 rounded-sm font-bold text-xs uppercase text-white ${ev.dictamen === 'aprobado' ? 'bg-green-700' : 'bg-red-700'}`}>
+                                {ev.dictamen}
+                            </span>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <span class="font-bold text-gray-700">Calificación Asignada: </span>
+                            <span class="text-gray-900 font-bold">{ev.calificacion !== null ? ev.calificacion : -1}/100</span>
+                        </div>
+
+                        {ev.comentarios && (
+                            <div>
+                                <p class="font-bold text-gray-700 mb-1">Comentarios del Revisor:</p>
+                                <div class="bg-gray-50 p-4 rounded text-gray-700 whitespace-pre-wrap">{ev.comentarios}</div>
+                            </div>
+                        )}
+                    </CardContainer>
+                ))}
+            </div>
+            ) : (
+            <CardContainer>
+                <p class="text-gray-500 text-center py-4">Aún no se han recibido evaluaciones para este artículo.</p>
+            </CardContainer>
+            )}
+        </div>
+    </main>
+</Main>

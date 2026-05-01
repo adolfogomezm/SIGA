@@ -34,8 +34,9 @@ import '../styles/global.css'
         'Rechazados': '#c83e2b',
     };
 
-    function addRow(data) {
-        const statusColor = statusColors[data.status] || '#6B1B32';
+    function addRow(data: any) {
+        if (!tableBody) return;
+        const statusColor = statusColors[data.status as keyof typeof statusColors] || '#6B1B32';
         const isEven = tableBody.children.length % 2 !== 0;
         const bgClass = isEven ? 'bg-[#F3F2F3]' : 'bg-white';
 
@@ -43,7 +44,7 @@ import '../styles/global.css'
         <tr class="block lg:table-row ${bgClass} border-b mb-4 lg:mb-0 shadow-sm lg:shadow-none">
             <td class="flex justify-between lg:table-cell px-6 py-3 lg:py-4 border-b lg:border-none">
                 <span class="lg:hidden font-bold text-[#6B1B32] uppercase text-xs">ID</span>
-                <span>${data.id}</span>
+                <span>E-${String(data.id).padStart(4, '0')}</span>
             </td>
             <td class="flex justify-between lg:table-cell px-6 py-3 lg:py-4 border-b lg:border-none">
                 <span class="lg:hidden font-bold text-[#6B1B32] uppercase text-xs">Título</span>
@@ -83,9 +84,9 @@ import '../styles/global.css'
             addRow({
                 id: element.articulo.idArticulo,
                 title: element.articulo.titulo,
-                date: new Date(element.articulo.date).toLocaleDateString(),
+                date: element.articulo.date ? new Date(element.articulo.date as unknown as string).toLocaleDateString() : 'N/A',
                 status: element.articulo.estado,
-                route: element.articulo.ruta,
+                route: `/autor/verArticulo?id=${element.articulo.idArticulo}`,
             });
         }
     }

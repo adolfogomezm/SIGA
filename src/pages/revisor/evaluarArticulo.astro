@@ -1,0 +1,230 @@
+---
+import Main from '../../layouts/Main.astro';
+import Sidebar from "../../components/Sidebar.astro";
+import CardContainer from '../../components/CardContainer.astro';
+import { actions } from 'astro:actions';
+
+const idStr = Astro.url.searchParams.get('id');
+const id = idStr ? Number(idStr) : 0;
+const { data: articuloData, error: err } = await Astro.callAction(actions.getArticuloById, { id });
+const articleIdFormatted = id.toString().padStart(4, '0');
+const areaLabel = articuloData?.articulo.area === 'area_1' ? 'Área 1' : articuloData?.articulo.area === 'area_2' ? 'Área 2' : 'Área 3';
+---
+
+<Main>
+    <Sidebar role="revisor" />
+
+    <main slot="main" class="overflow-scroll p-8 w-full bg-[#F3F2F3] min-h-screen">
+        <div class="max-w-4xl mx-auto">
+            <a href="/revisor" class="text-[#5F1333] hover:underline font-medium mb-4 inline-block">&larr; Regresar al Panel</a>
+            
+            <h1 class="text-3xl font-bold text-[#5F1333] mb-8 uppercase tracking-tight">
+                Evaluación de Artículo — E-{articleIdFormatted}
+            </h1>
+
+            <!-- RF-21: Resumen completo del trabajo -->
+            <CardContainer class="mb-6">
+                <h2 class="text-[#5F1333] font-bold mb-4 text-xl">Información del Artículo</h2>
+                <div class="grid grid-cols-[120px_1fr] gap-y-4 py-2">
+                    <span class="font-bold text-gray-700">Título:</span>
+                    <span class="text-gray-600 font-medium">{articuloData?.articulo.titulo || 'Sin título'}</span>
+
+                    <span class="font-bold text-gray-700">Autor:</span>
+                    <span class="text-gray-600">{articuloData?.autor || 'Desconocido'}</span>
+                    
+                    <span class="font-bold text-gray-700">Área:</span>
+                    <span class="text-gray-600">{areaLabel}</span>
+                    
+                    <span class="font-bold text-gray-700">Estado:</span>
+                    <span>
+                        <span class="bg-amber-600 text-white px-4 py-1 rounded-sm font-bold text-xs uppercase">
+                            {articuloData?.articulo.estado || 'Desconocido'}
+                        </span>
+                    </span>
+                    
+                    <span class="font-bold text-gray-700">Fecha:</span>
+                    <span class="text-gray-600">{articuloData?.articulo.date ? new Date(articuloData.articulo.date).toLocaleDateString('es-MX') : 'N/A'}</span>
+                </div>
+            </CardContainer>
+            
+            <CardContainer class="mb-6">
+                <h2 class="text-[#5F1333] font-bold mb-4 text-xl">Resumen (Abstract)</h2>
+                <p class="text-gray-600 leading-relaxed text-justify">
+                    {articuloData?.articulo.abstract || 'Este artículo no tiene un resumen proporcionado por el autor.'}
+                </p>
+                { articuloData?.articulo.ruta && (
+                <div class="mt-6 flex justify-end">
+                    <a href={articuloData.articulo.ruta} target="_blank" class="bg-gray-200 text-gray-700 px-6 py-2 rounded font-bold hover:bg-gray-300 transition-colors flex items-center gap-2">
+                        <span>📄</span> Ver PDF Completo
+                    </a>
+                </div>
+                )}
+            </CardContainer>
+
+            <!-- RF-22: Rúbrica de evaluación con criterios 1-5 -->
+            <CardContainer class="mb-6">
+                <form id="evaluationForm">
+                    <input type="hidden" id="articuloId" value={id} />
+                    <h2 class="text-[#5F1333] font-bold mb-2 text-xl">Rúbrica de Evaluación</h2>
+                    <p class="text-gray-500 text-sm mb-6">Asigna una puntuación de 1 a 5 para cada criterio. El promedio determinará el dictamen final.</p>
+
+                    <div class="space-y-6">
+                        <!-- Criterio 1 -->
+                        <div class="rubric-item">
+                            <label class="block font-bold text-gray-800 mb-1">1. Originalidad y Relevancia</label>
+                            <p class="text-xs text-gray-400 mb-2">¿El trabajo aporta novedad al campo de investigación?</p>
+                            <div class="flex gap-2 items-center">
+                                <input type="range" min="1" max="5" value="3" class="rubric-slider flex-1 accent-[#5F1333] h-2 cursor-pointer" data-criterion="originalidad"/>
+                                <span class="rubric-value bg-[#5F1333] text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">3</span>
+                            </div>
+                        </div>
+
+                        <!-- Criterio 2 -->
+                        <div class="rubric-item">
+                            <label class="block font-bold text-gray-800 mb-1">2. Metodología</label>
+                            <p class="text-xs text-gray-400 mb-2">¿Es sólida y apropiada la metodología utilizada?</p>
+                            <div class="flex gap-2 items-center">
+                                <input type="range" min="1" max="5" value="3" class="rubric-slider flex-1 accent-[#5F1333] h-2 cursor-pointer" data-criterion="metodologia"/>
+                                <span class="rubric-value bg-[#5F1333] text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">3</span>
+                            </div>
+                        </div>
+
+                        <!-- Criterio 3 -->
+                        <div class="rubric-item">
+                            <label class="block font-bold text-gray-800 mb-1">3. Resultados y Análisis</label>
+                            <p class="text-xs text-gray-400 mb-2">¿Los resultados son claros y el análisis es coherente?</p>
+                            <div class="flex gap-2 items-center">
+                                <input type="range" min="1" max="5" value="3" class="rubric-slider flex-1 accent-[#5F1333] h-2 cursor-pointer" data-criterion="resultados"/>
+                                <span class="rubric-value bg-[#5F1333] text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">3</span>
+                            </div>
+                        </div>
+
+                        <!-- Criterio 4 -->
+                        <div class="rubric-item">
+                            <label class="block font-bold text-gray-800 mb-1">4. Redacción y Presentación</label>
+                            <p class="text-xs text-gray-400 mb-2">¿El documento está bien redactado, con estructura y formato adecuados?</p>
+                            <div class="flex gap-2 items-center">
+                                <input type="range" min="1" max="5" value="3" class="rubric-slider flex-1 accent-[#5F1333] h-2 cursor-pointer" data-criterion="redaccion"/>
+                                <span class="rubric-value bg-[#5F1333] text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">3</span>
+                            </div>
+                        </div>
+
+                        <!-- Criterio 5 -->
+                        <div class="rubric-item">
+                            <label class="block font-bold text-gray-800 mb-1">5. Contribución al Área</label>
+                            <p class="text-xs text-gray-400 mb-2">¿El trabajo tiene potencial impacto en su área temática?</p>
+                            <div class="flex gap-2 items-center">
+                                <input type="range" min="1" max="5" value="3" class="rubric-slider flex-1 accent-[#5F1333] h-2 cursor-pointer" data-criterion="contribucion"/>
+                                <span class="rubric-value bg-[#5F1333] text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">3</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Promedio calculado -->
+                    <div class="mt-8 p-4 bg-gray-100 rounded-lg flex items-center justify-between">
+                        <div>
+                            <p class="font-bold text-gray-800">Puntuación Promedio</p>
+                            <p class="text-xs text-gray-500">≥ 3.0 = Aprobado · &lt; 3.0 = Rechazado</p>
+                        </div>
+                        <div class="text-center">
+                            <span id="averageScore" class="text-4xl font-bold text-[#5F1333]">3.0</span>
+                            <p id="averageVerdict" class="text-sm font-bold mt-1 text-amber-600">—</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex flex-col gap-4">
+                        <div>
+                            <label for="calificacion" class="block text-base font-bold text-gray-800 mb-2">Calificación (0-100)</label>
+                            <input type="number" id="calificacion" min="0" max="100" placeholder="Ej: 85" required class="w-full lg:w-1/3 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#8c1e4d]" />
+                        </div>
+                        <div>
+                            <label for="observaciones" class="block text-base font-bold text-gray-800 mb-2">Observaciones Adicionales</label>
+                            <textarea id="observaciones" placeholder="Comentarios opcionales para el autor y el comité editorial..." class="w-full px-4 py-2 h-28 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#8c1e4d] resize-none"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4 mt-8">
+                        <a href="/revisor" class="px-6 py-3 bg-gray-300 text-gray-800 rounded font-bold uppercase hover:bg-gray-400 transition-colors text-center w-1/3">
+                            Cancelar
+                        </a>
+                        <button type="submit" id="submitBtn" class="px-6 py-3 bg-[#5F1333] text-white rounded font-bold uppercase transition-transform active:scale-95 shadow hover:-translate-y-0.5 hover:bg-[#4a0e28] text-center w-2/3 disabled:opacity-50">
+                            Enviar Evaluación
+                        </button>
+                    </div>
+                </form>
+            </CardContainer>
+        </div>
+    </main>
+</Main>
+
+<script>
+    import { actions } from 'astro:actions';
+
+    const form = document.getElementById('evaluationForm') as HTMLFormElement;
+    const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+    const articuloIdInput = document.getElementById('articuloId') as HTMLInputElement;
+    const averageScoreEl = document.getElementById('averageScore')!;
+    const averageVerdictEl = document.getElementById('averageVerdict')!;
+    const observacionesInput = document.getElementById('observaciones') as HTMLTextAreaElement;
+    const calificacionInput = document.getElementById('calificacion') as HTMLInputElement;
+
+    const sliders = document.querySelectorAll<HTMLInputElement>('.rubric-slider');
+    const values = document.querySelectorAll<HTMLElement>('.rubric-value');
+
+    function updateAverage() {
+        let sum = 0;
+        sliders.forEach((slider, i) => {
+            const val = Number(slider.value);
+            sum += val;
+            values[i].textContent = String(val);
+        });
+        const avg = sum / sliders.length;
+        averageScoreEl.textContent = avg.toFixed(1);
+
+        if (avg >= 3) {
+            averageVerdictEl.textContent = 'APROBADO';
+            averageVerdictEl.className = 'text-sm font-bold mt-1 text-green-700';
+            averageScoreEl.className = 'text-4xl font-bold text-green-700';
+        } else {
+            averageVerdictEl.textContent = 'RECHAZADO';
+            averageVerdictEl.className = 'text-sm font-bold mt-1 text-red-700';
+            averageScoreEl.className = 'text-4xl font-bold text-red-700';
+        }
+    }
+
+    sliders.forEach(slider => {
+        slider.addEventListener('input', updateAverage);
+    });
+    updateAverage();
+
+    form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const idArticulo = Number(articuloIdInput.value);
+        if (!idArticulo || isNaN(idArticulo)) {
+            alert('Error: no se pudo identificar el artículo.');
+            return;
+        }
+
+        // RF-22: Calculate average from rubric, determine dictamen
+        let sum = 0;
+        sliders.forEach(s => { sum += Number(s.value); });
+        const avg = sum / sliders.length;
+        const dictamen: 'aprobado' | 'rechazado' | 'revision' = avg >= 3 ? 'aprobado' : 'rechazado';
+        const calificacion = Number(calificacionInput.value) || 0;
+        const comentarios = observacionesInput.value.trim();
+
+        submitBtn.disabled = true;
+
+        const { data, error } = await actions.submitDictamen({ idArticulo, dictamen, calificacion, comentarios });
+
+        submitBtn.disabled = false;
+
+        if (error) {
+            alert('Error: ' + error.message);
+        } else {
+            alert(`${data.message}\n\nPuntuación: ${avg.toFixed(1)}/5.0 — Dictamen: ${dictamen.toUpperCase()}`);
+            window.location.href = '/revisor';
+        }
+    });
+</script>

@@ -3,6 +3,9 @@ import Main from '../../layouts/Main.astro';
 import Sidebar from "../../components/Sidebar.astro";
 import CardContainer from '../../components/CardContainer.astro';
 import UserRow from '../../components/UserRow.astro';
+import { actions } from 'astro:actions';
+
+const { data: usuarios, error } = await Astro.callAction(actions.getAllUsuarios, {});
 ---
 
 <Main>
@@ -11,11 +14,26 @@ import UserRow from '../../components/UserRow.astro';
     <main slot="main" class="p-8 w-full bg-[#F3F2F3] min-h-screen">
         <h1 class="text-4xl font-bold text-[#5F1333] mb-8">Gestión de Usuarios</h1>
 
+        <!-- Agregar nuevo revisor -->
         <CardContainer class="mb-6">
-            <!--- Barra busqueda --->
+            <h2 class="text-[#5F1333] font-bold mb-4 text-lg">Agregar Nuevo Revisor</h2>
+            <p class="text-sm text-gray-500 mb-4">Busca un usuario por ID o nombre para cambiarle el rol a revisor.</p>
+            
+            <div class="flex gap-2 mb-3">
+                <input type="text" id="searchRevisorInput" placeholder="Buscar por ID o nombre..." class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5F1333] text-sm" />
+                <button type="button" id="btnSearchRevisor" class="px-4 py-2 bg-[#5F1333] text-white rounded-md font-bold hover:bg-[#4a0e28] transition-colors text-sm">
+                    Buscar
+                </button>
+            </div>
+
+            <div id="searchRevisorResults" class="hidden border border-gray-200 rounded-md bg-white max-h-60 overflow-y-auto shadow-sm"></div>
+        </CardContainer>
+
+        <CardContainer class="mb-6">
             <div class="flex items-center justify-between gap-6">
                 <div class="flex-1">
                     <input
+                            id="searchUserInput"
                             type="text"
                             placeholder="Buscar usuario..."
                             class="w-full p-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-[#5F1333]"
@@ -24,19 +42,15 @@ import UserRow from '../../components/UserRow.astro';
 
                 <div class="flex items-center gap-4">
                     <span class="text-gray-600">Tipo:</span>
-                    <select class="bg-[#EDEDED] p-2 border-r-8 border-transparent font-medium min-w-[150px]">
-                        <option>Todos</option>
-                        <option>Autor</option>
-                        <option>Revisor</option>
+                    <select id="filterUserSelect" class="bg-[#EDEDED] p-2 border-r-8 border-transparent font-medium min-w-[150px]">
+                        <option value="todos">Todos</option>
+                        <option value="autor">Autor</option>
+                        <option value="revisor">Revisor</option>
+                        <option value="administrador">Administrador</option>
                     </select>
                 </div>
-
-                <button class="bg-[#5F1333] text-white px-6 py-2 font-bold flex items-center gap-2 hover:bg-[#4a0e28] transition-colors">
-                    <span>+</span> Nuevo Usuario
-                </button>
             </div>
 
-            <!--- Tabla con datos --->
             <div class="shadow-md overflow-hidden mt-4">
                 <table class="w-full text-left border-collapse">
                     <thead class="bg-[#5F1333] text-white">
@@ -45,20 +59,150 @@ import UserRow from '../../components/UserRow.astro';
                         <th class="p-4 uppercase text-sm font-bold">Nombre</th>
                         <th class="p-4 uppercase text-sm font-bold">Correo</th>
                         <th class="p-4 uppercase text-sm font-bold text-center">Tipo</th>
-                        <th class="p-4 uppercase text-sm font-bold text-center">Estado</th>
                         <th class="p-4 uppercase text-sm font-bold text-center">Acciones</th>
                     </tr>
                     </thead>
-                    <tbody>
-                    <UserRow id="USR-001" nombre="Nombre Apellido" correo="correo@ejemplo.com" tipo="AUTOR" estado="ACTIVO" />
-                    <UserRow id="USR-002" nombre="Nombre Apellido" correo="correo@ejemplo.com" tipo="REVISOR" estado="ACTIVO" />
-                    <UserRow id="USR-003" nombre="Nombre Apellido" correo="correo@ejemplo.com" tipo="REVISOR" estado="BAJA" />
-                    <UserRow id="USR-004" nombre="Nombre Apellido" correo="correo@ejemplo.com" tipo="AUTOR" estado="ACTIVO" />
+                    <tbody id="tableUsersBody">
+                    {
+                        usuarios?.map((user) => (
+                            <tr class="border-b border-gray-100 bg-white hover:bg-gray-50 transition-colors" data-user-id={user.idUsuario}>
+                                <td class="p-4 text-gray-600">{`USR-${user.idUsuario.toString().padStart(4, '0')}`}</td>
+                                <td class="p-4 text-gray-800 font-medium">{user.nombre}</td>
+                                <td class="p-4 text-gray-500">{user.correo}</td>
+                                <td class="p-4 text-center">
+                                    <span class={`px-4 py-1 rounded-sm font-bold text-xs uppercase text-white ${user.rol === 'revisor' ? 'bg-purple-700' : user.rol === 'administrador' ? 'bg-[#5F1333]' : 'bg-blue-700'}`}>
+                                        {user.rol}
+                                    </span>
+                                </td>
+                                <td class="p-4 text-center">
+                                    <select class="select-cambiar-rol px-2 py-1 border border-gray-300 rounded text-sm" data-user-id={user.idUsuario}>
+                                        <option value="" disabled selected>Cambiar rol...</option>
+                                        <option value="autor" disabled={user.rol === 'autor'}>Autor</option>
+                                        <option value="revisor" disabled={user.rol === 'revisor'}>Revisor</option>
+                                        <option value="administrador" disabled={user.rol === 'administrador'}>Administrador</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        ))
+                    }
                     </tbody>
                 </table>
             </div>
         </CardContainer>
-
-
     </main>
 </Main>
+
+<script>
+    import { actions } from 'astro:actions';
+
+    // ===== Search for reviewer promotion =====
+    const searchRevInput = document.getElementById('searchRevisorInput') as HTMLInputElement;
+    const btnSearchRev = document.getElementById('btnSearchRevisor')!;
+    const searchRevResults = document.getElementById('searchRevisorResults')!;
+
+    async function searchForRevisor() {
+        const query = searchRevInput.value.trim();
+        if (!query) return;
+
+        const { data, error } = await actions.buscarColaboradores({ query });
+        if (error) { alert('Error: ' + error.message); return; }
+        if (!data || data.length === 0) {
+            searchRevResults.innerHTML = '<div class="p-3 text-gray-500 text-sm">No se encontraron resultados.</div>';
+            searchRevResults.classList.remove('hidden');
+            return;
+        }
+
+        searchRevResults.innerHTML = '';
+        data.forEach(u => {
+            const row = document.createElement('div');
+            row.className = 'p-3 hover:bg-gray-100 cursor-pointer border-b last:border-b-0 flex justify-between items-center transition-colors';
+            row.innerHTML = `
+                <div>
+                    <span class="font-bold text-[#5F1333]">USR-${String(u.idUsuario).padStart(4,'0')}</span>
+                    <span class="text-gray-800 ml-2">${u.nombre || ''}</span>
+                    <span class="text-gray-400 text-xs ml-2">${u.correo || ''}</span>
+                </div>
+                <button type="button" class="bg-purple-700 text-white px-3 py-1 text-xs font-bold rounded hover:bg-purple-800 transition-colors">
+                    Hacer Revisor
+                </button>
+            `;
+            const btn = row.querySelector('button')!;
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                (btn as HTMLButtonElement).disabled = true;
+                btn.textContent = '...';
+                const { data: result, error } = await actions.cambiarRolUsuario({ idUsuario: u.idUsuario, nuevoRol: 'revisor' });
+                if (error) {
+                    alert('Error: ' + error.message);
+                    (btn as HTMLButtonElement).disabled = false;
+                    btn.textContent = 'Hacer Revisor';
+                } else {
+                    alert(result.message);
+                    window.location.reload();
+                }
+            });
+            searchRevResults.appendChild(row);
+        });
+        searchRevResults.classList.remove('hidden');
+    }
+
+    btnSearchRev.addEventListener('click', searchForRevisor);
+    searchRevInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); searchForRevisor(); }});
+
+    // Close search results on outside click
+    document.addEventListener('click', (e) => {
+        if (!searchRevInput.contains(e.target as Node) && !searchRevResults.contains(e.target as Node) && !btnSearchRev.contains(e.target as Node)) {
+            searchRevResults.classList.add('hidden');
+        }
+    });
+
+    // ===== Change role from table dropdown =====
+    document.querySelectorAll('.select-cambiar-rol').forEach(select => {
+        select.addEventListener('change', async () => {
+            const sel = select as HTMLSelectElement;
+            const userId = Number(sel.dataset.userId);
+            const nuevoRol = sel.value as "autor" | "revisor" | "administrador";
+            if (!userId || !nuevoRol) return;
+
+            if (!confirm(`¿Cambiar rol del usuario USR-${String(userId).padStart(4,'0')} a "${nuevoRol}"?`)) {
+                sel.value = '';
+                return;
+            }
+
+            const { data, error } = await actions.cambiarRolUsuario({ idUsuario: userId, nuevoRol });
+            if (error) {
+                alert('Error: ' + error.message);
+                sel.value = '';
+            } else {
+                alert(data.message);
+                window.location.reload();
+            }
+        });
+    });
+
+    // ===== Existing filter logic =====
+    const searchInput = document.getElementById('searchUserInput') as HTMLInputElement | null;
+    const filterSelect = document.getElementById('filterUserSelect') as HTMLSelectElement | null;
+    const tableBody = document.getElementById('tableUsersBody') as HTMLTableSectionElement | null;
+
+    function filterTable() {
+        const text = searchInput?.value.toLowerCase() || '';
+        const status = filterSelect?.value.toLowerCase() || 'todos';
+        const rows = tableBody?.querySelectorAll('tr');
+        
+        rows?.forEach(row => {
+            const rowText = row.textContent?.toLowerCase() || '';
+            const matchesText = rowText.includes(text);
+            const matchesStatus = status === 'todos' || rowText.includes(status);
+            
+            if (matchesText && matchesStatus) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    searchInput?.addEventListener('input', filterTable);
+    filterSelect?.addEventListener('change', filterTable);
+</script>
