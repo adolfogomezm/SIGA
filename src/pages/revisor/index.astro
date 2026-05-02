@@ -1,146 +1,221 @@
 ---
-import Main from '../../layouts/Main.astro';
+import Main from "../../layouts/Main.astro";
 import Sidebar from "../../components/Sidebar.astro";
-import Estados from '../../components/Estados.astro';
-import TableArticulos from '../../components/TableArticulos.astro';
-import { actions } from 'astro:actions';
+import Estados from "../../components/Estados.astro";
+import TableArticulos from "../../components/TableArticulos.astro";
+import { actions } from "astro:actions";
 
 // Author data (reviewer is also an author)
-const { data: misArticulos, error: errAutor } = await Astro.callAction(actions.getArticulos, {});
+const { data: misArticulos, error: errAutor } = await Astro.callAction(
+    actions.getArticulos,
+    {},
+);
 const qtty = misArticulos?.length || 0;
 const isLimitReached = qtty >= 3;
 
 // Reviewer data
-const { data: paraRevisar, error: errRevisor } = await Astro.callAction(actions.getArticulosParaRevisar, {});
-const pendientes = paraRevisar?.filter(a => !a.dictamenRevisor || a.dictamenRevisor === 'revision') || [];
-const revisados = paraRevisar?.filter(a => a.dictamenRevisor && a.dictamenRevisor !== 'revision') || [];
+const { data: paraRevisar, error: errRevisor } = await Astro.callAction(
+    actions.getArticulosParaRevisar,
+    {},
+);
+const pendientes =
+    paraRevisar?.filter(
+        (a) => !a.dictamenRevisor || a.dictamenRevisor === "revision",
+    ) || [];
+const revisados =
+    paraRevisar?.filter(
+        (a) => a.dictamenRevisor && a.dictamenRevisor !== "revision",
+    ) || [];
 const todosRevisor = paraRevisar || [];
 
 // RF-20: Counts by area
-const area1 = todosRevisor.filter(a => a.articulo.area === 'area_1');
-const area2 = todosRevisor.filter(a => a.articulo.area === 'area_2');
-const area3 = todosRevisor.filter(a => a.articulo.area === 'area_3');
+const area1 = todosRevisor.filter((a) => a.articulo.area === "area_1");
+const area2 = todosRevisor.filter((a) => a.articulo.area === "area_2");
+const area3 = todosRevisor.filter((a) => a.articulo.area === "area_3");
 ---
+
 <Main>
     <Sidebar role="revisor" />
     <main slot="main" class="p-8 w-full bg-[#F3F2F3] min-h-screen">
-        
-        <!-- ===== SECCIÓN DE AUTOR ===== -->
-        { !isLimitReached ? (
-        <div class="fixed right-8 bottom-8 z-[1000] bg-siga-red-normal p-4 shadow-lg w-fit text-white lg:w-1/4 lg:text-center hover:bg-siga-red-dark transition-colors cursor-pointer rounded-sm">
-            <a href="/autor/subirArticulo" class="w-full h-full block font-bold text-lg">
-                + Nuevo Envío
-            </a>
-        </div>
-        ) : (
-        <div class="fixed right-8 bottom-8 z-[1000] bg-gray-500 p-4 shadow-lg w-fit text-white lg:w-1/4 lg:text-center rounded-sm">
-            <span class="w-full h-full block font-bold text-lg" title="Límite máximo de 3 artículos alcanzado">
-                Límite de Envíos Alcanzado
-            </span>
-        </div>
-        )}
-
-        <Estados />
-
-        <div class="mt-12 px-10">
-            <h2 class="text-[#5F1333] font-bold text-2xl uppercase tracking-wider mb-2">Mis Trabajos</h2>
-            <hr class="border-[#5F1333] mb-6"/>
-        </div>
-        <TableArticulos />
-
         <!-- ===== SECCIÓN DE REVISOR ===== -->
-        <div class="mt-16 px-10">
-            <h2 class="text-[#5F1333] font-bold text-2xl uppercase tracking-wider mb-4">Panel de Evaluador</h2>
-            <hr class="border-[#5F1333] mb-6"/>
+        <div class="mt-8 px-10">
+            <h2
+                class="text-[#5F1333] font-bold text-2xl uppercase tracking-wider mb-4"
+            >
+                Panel de Evaluador
+            </h2>
+            <hr class="border-[#5F1333] mb-6" />
         </div>
 
         <!-- RF-20: Resumen por Área -->
         <div class="flex flex-wrap gap-4 px-10 mb-8">
-            <div class="flex-1 min-w-[200px] bg-white rounded-lg shadow-md p-5 border-l-4 border-blue-600">
+            <div
+                class="flex-1 min-w-[200px] bg-white rounded-lg shadow-md p-5 border-l-4 border-blue-600"
+            >
                 <p class="text-sm text-gray-500 uppercase font-bold">Área 1</p>
-                <p class="text-3xl font-bold text-blue-600 mt-1">{area1.length}</p>
-                <p class="text-xs text-gray-400 mt-1">{area1.filter(a => !a.dictamenRevisor || a.dictamenRevisor === 'revision').length} pendientes</p>
+                <p class="text-3xl font-bold text-blue-600 mt-1">
+                    {area1.length}
+                </p>
+                <p class="text-xs text-gray-400 mt-1">
+                    {
+                        area1.filter(
+                            (a) =>
+                                !a.dictamenRevisor ||
+                                a.dictamenRevisor === "revision",
+                        ).length
+                    } pendientes
+                </p>
             </div>
-            <div class="flex-1 min-w-[200px] bg-white rounded-lg shadow-md p-5 border-l-4 border-purple-600">
+            <div
+                class="flex-1 min-w-[200px] bg-white rounded-lg shadow-md p-5 border-l-4 border-purple-600"
+            >
                 <p class="text-sm text-gray-500 uppercase font-bold">Área 2</p>
-                <p class="text-3xl font-bold text-purple-600 mt-1">{area2.length}</p>
-                <p class="text-xs text-gray-400 mt-1">{area2.filter(a => !a.dictamenRevisor || a.dictamenRevisor === 'revision').length} pendientes</p>
+                <p class="text-3xl font-bold text-purple-600 mt-1">
+                    {area2.length}
+                </p>
+                <p class="text-xs text-gray-400 mt-1">
+                    {
+                        area2.filter(
+                            (a) =>
+                                !a.dictamenRevisor ||
+                                a.dictamenRevisor === "revision",
+                        ).length
+                    } pendientes
+                </p>
             </div>
-            <div class="flex-1 min-w-[200px] bg-white rounded-lg shadow-md p-5 border-l-4 border-teal-600">
+            <div
+                class="flex-1 min-w-[200px] bg-white rounded-lg shadow-md p-5 border-l-4 border-teal-600"
+            >
                 <p class="text-sm text-gray-500 uppercase font-bold">Área 3</p>
-                <p class="text-3xl font-bold text-teal-600 mt-1">{area3.length}</p>
-                <p class="text-xs text-gray-400 mt-1">{area3.filter(a => !a.dictamenRevisor || a.dictamenRevisor === 'revision').length} pendientes</p>
+                <p class="text-3xl font-bold text-teal-600 mt-1">
+                    {area3.length}
+                </p>
+                <p class="text-xs text-gray-400 mt-1">
+                    {
+                        area3.filter(
+                            (a) =>
+                                !a.dictamenRevisor ||
+                                a.dictamenRevisor === "revision",
+                        ).length
+                    } pendientes
+                </p>
             </div>
-            <div class="flex-1 min-w-[200px] bg-white rounded-lg shadow-md p-5 border-l-4 border-[#5F1333]">
+            <div
+                class="flex-1 min-w-[200px] bg-white rounded-lg shadow-md p-5 border-l-4 border-[#5F1333]"
+            >
                 <p class="text-sm text-gray-500 uppercase font-bold">Total</p>
-                <p class="text-3xl font-bold text-[#5F1333] mt-1">{todosRevisor.length}</p>
-                <p class="text-xs text-gray-400 mt-1">{pendientes.length} pendientes · {revisados.length} completados</p>
+                <p class="text-3xl font-bold text-[#5F1333] mt-1">
+                    {todosRevisor.length}
+                </p>
+                <p class="text-xs text-gray-400 mt-1">
+                    {pendientes.length} pendientes · {revisados.length} completados
+                </p>
             </div>
         </div>
 
         <!-- RF-19: Artículos con codificación cromática -->
         <div class="px-10 mb-4">
-            <h3 class="text-[#5F1333] font-bold text-lg uppercase tracking-wider">Artículos Asignados</h3>
+            <h3
+                class="text-[#5F1333] font-bold text-lg uppercase tracking-wider"
+            >
+                Artículos Asignados
+            </h3>
             <p class="text-gray-500 text-sm mt-1 mb-4">
-                <span class="inline-block w-3 h-3 rounded-full bg-red-600 mr-1"></span> Pendiente de evaluación
-                <span class="inline-block w-3 h-3 rounded-full bg-green-600 ml-3 mr-1"></span> Evaluación completada
+                <span class="inline-block w-3 h-3 rounded-full bg-red-600 mr-1"
+                ></span> Pendiente de evaluación
+                <span
+                    class="inline-block w-3 h-3 rounded-full bg-green-600 ml-3 mr-1"
+                ></span> Evaluación completada
             </p>
         </div>
 
         <div class="overflow-hidden bg-white shadow-md mx-10 mb-8">
             <table class="w-full text-left border-collapse">
                 <thead class="bg-[#5F1333] text-white">
-                <tr>
-                    <th class="p-4 uppercase text-sm">ID</th>
-                    <th class="p-4 uppercase text-sm">Título</th>
-                    <th class="p-4 uppercase text-sm">Autor</th>
-                    <th class="p-4 uppercase text-sm">Área</th>
-                    <th class="p-4 uppercase text-sm text-center">Dictamen</th>
-                    <th class="p-4 uppercase text-sm text-center">Acciones</th>
-                </tr>
+                    <tr>
+                        <th class="p-4 uppercase text-sm">ID</th>
+                        <th class="p-4 uppercase text-sm">Título</th>
+                        <th class="p-4 uppercase text-sm">Autor</th>
+                        <th class="p-4 uppercase text-sm">Área</th>
+                        <th class="p-4 uppercase text-sm text-center"
+                            >Dictamen</th
+                        >
+                        <th class="p-4 uppercase text-sm text-center"
+                            >Acciones</th
+                        >
+                    </tr>
                 </thead>
                 <tbody class="bg-gray-50/50">
-                {
-                    todosRevisor.length > 0 ? todosRevisor.map((item) => {
-                        const isPending = !item.dictamenRevisor || item.dictamenRevisor === 'revision';
-                        const rowBorder = isPending ? 'border-l-4 border-red-500' : 'border-l-4 border-green-600';
-                        const areaLabel = item.articulo.area === 'area_1' ? 'Área 1' : item.articulo.area === 'area_2' ? 'Área 2' : 'Área 3';
-                        return (
-                        <tr class={`border-b hover:bg-gray-100 transition-colors ${rowBorder}`}>
-                            <td class="p-4 font-mono">{`E-${item.articulo.idArticulo.toString().padStart(4, '0')}`}</td>
-                            <td class="p-4">{item.articulo.titulo}</td>
-                            <td class="p-4">{item.autor}</td>
-                            <td class="p-4">
-                                <span class="text-sm font-medium">{areaLabel}</span>
-                            </td>
-                            <td class="p-4 text-center">
-                                { isPending ? (
-                                    <span class="bg-red-600 text-white px-4 py-1 rounded-sm font-bold text-xs uppercase">
-                                        Pendiente
-                                    </span>
-                                ) : (
-                                    <span class={`px-4 py-1 rounded-sm font-bold text-xs uppercase text-white ${item.dictamenRevisor === 'aprobado' ? 'bg-green-700' : 'bg-orange-700'}`}>
-                                        {item.dictamenRevisor}
-                                    </span>
-                                )}
-                            </td>
-                            <td class="p-4 text-center">
-                                { isPending ? (
-                                    <a href={`/revisor/evaluarArticulo?id=${item.articulo.idArticulo}`} class="bg-[#5F1333] text-white px-6 py-2 rounded-sm text-sm font-bold hover:bg-[#4a0e28] transition-colors">
-                                        Evaluar
-                                    </a>
-                                ) : (
-                                    <span class="text-gray-400 text-sm">Completado</span>
-                                )}
-                            </td>
-                        </tr>
-                        );
-                    }) : (
-                        <tr>
-                            <td colspan="6" class="p-8 text-center text-gray-500 font-medium">No tienes artículos asignados para revisión.</td>
-                        </tr>
-                    )
-                }
+                    {
+                        todosRevisor.length > 0 ? (
+                            todosRevisor.map((item) => {
+                                const isPending =
+                                    !item.dictamenRevisor ||
+                                    item.dictamenRevisor === "revision";
+                                const rowBorder = isPending
+                                    ? "border-l-4 border-red-500"
+                                    : "border-l-4 border-green-600";
+                                const areaLabel =
+                                    item.articulo.area === "area_1"
+                                        ? "Área 1"
+                                        : item.articulo.area === "area_2"
+                                          ? "Área 2"
+                                          : "Área 3";
+                                return (
+                                    <tr
+                                        class={`border-b hover:bg-gray-100 transition-colors ${rowBorder}`}
+                                    >
+                                        <td class="p-4 font-mono">{`E-${item.articulo.idArticulo.toString().padStart(4, "0")}`}</td>
+                                        <td class="p-4">
+                                            {item.articulo.titulo}
+                                        </td>
+                                        <td class="p-4">{item.autor}</td>
+                                        <td class="p-4">
+                                            <span class="text-sm font-medium">
+                                                {areaLabel}
+                                            </span>
+                                        </td>
+                                        <td class="p-4 text-center">
+                                            {isPending ? (
+                                                <span class="bg-red-600 text-white px-4 py-1 rounded-sm font-bold text-xs uppercase">
+                                                    Pendiente
+                                                </span>
+                                            ) : (
+                                                <span
+                                                    class={`px-4 py-1 rounded-sm font-bold text-xs uppercase text-white ${item.dictamenRevisor === "aprobado" ? "bg-green-700" : "bg-orange-700"}`}
+                                                >
+                                                    {item.dictamenRevisor}
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td class="p-4 text-center">
+                                            {isPending ? (
+                                                <a
+                                                    href={`/revisor/evaluarArticulo?id=${item.articulo.idArticulo}`}
+                                                    class="bg-[#5F1333] text-white px-6 py-2 rounded-sm text-sm font-bold hover:bg-[#4a0e28] transition-colors"
+                                                >
+                                                    Evaluar
+                                                </a>
+                                            ) : (
+                                                <span class="text-gray-400 text-sm">
+                                                    Completado
+                                                </span>
+                                            )}
+                                        </td>
+                                    </tr>
+                                );
+                            })
+                        ) : (
+                            <tr>
+                                <td
+                                    colspan="6"
+                                    class="p-8 text-center text-gray-500 font-medium"
+                                >
+                                    No tienes artículos asignados para revisión.
+                                </td>
+                            </tr>
+                        )
+                    }
                 </tbody>
             </table>
         </div>

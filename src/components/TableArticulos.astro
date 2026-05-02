@@ -1,50 +1,148 @@
 ---
-import '../styles/global.css'
-
-
+import "../styles/global.css";
 ---
 
+<div class="flex gap-15 pl-10">
+    <div class="flex items-center gap-2 bg-gray-200 max-w-fit p-2 rounded-2xl">
+        <span class="text-gray-600">Filtrar por estado:</span>
+        <select
+            id="filterSelectEstado"
+            class="bg-gray-100 p-2 border-r-8 border-transparent font-medium"
+        >
+            <option value="todos">Todos</option>
+            <option value="en revision">En Revisión</option>
+            <option value="aprobados">Aprobado</option>
+            <option value="enviado">Enviado</option>
+            <option value="rechazados">Rechazados</option>
+        </select>
+    </div>
+    <div class="flex items-center gap-2 bg-gray-200 max-w-fit p-2 rounded-2xl">
+        <span class="text-gray-600">Filtrar por área:</span>
+        <select
+            id="filterSelectArea"
+            class="bg-gray-100 p-2 border-r-8 border-transparent font-medium"
+        >
+            <option value="todos">Todos</option>
+            <option value="area_1">Área 1</option>
+            <option value="area_2">Área 2</option>
+            <option value="area_3">Área 3</option>
+        </select>
+    </div>
+</div>
 <div class="w-full p-10">
     <table class="w-full border-collapse">
         <thead class="hidden lg:table-header-group">
-        <tr class="bg-[#6B1B32] text-white">
-            <th class="px-6 py-4 font-bold uppercase text-sm text-left">ID</th>
-            <th class="px-6 py-4 font-bold uppercase text-sm text-left">Título</th>
-            <th class="px-6 py-4 font-bold uppercase text-sm text-center">Fecha Envío</th>
-            <th class="px-6 py-4 font-bold uppercase text-sm text-center">Estado</th>
-            <th class="px-6 py-4 font-bold uppercase text-sm text-center">Acciones</th>
-        </tr>
+            <tr class="bg-[#6B1B32] text-white">
+                <th class="px-6 py-4 font-bold uppercase text-sm text-left"
+                    >ID</th
+                >
+                <th class="px-6 py-4 font-bold uppercase text-sm text-left"
+                    >Título</th
+                >
+                <th class="px-6 py-4 font-bold uppercase text-sm text-center"
+                    >Fecha Envío</th
+                >
+                <th class="px-6 py-4 font-bold uppercase text-sm text-center"
+                    >Estado</th
+                >
+                <th class="px-6 py-4 font-bold uppercase text-sm text-center"
+                    >Acciones</th
+                >
+            </tr>
         </thead>
 
-        <tbody class="block lg:table-row-group">
-        </tbody>
+        <tbody class="block lg:table-row-group"> </tbody>
     </table>
 </div>
 
-
 <script>
-    import { actions } from 'astro:actions';
+    import { actions } from "astro:actions";
 
-    const tableBody = document.querySelector('tbody');
+    const tableBody = document.querySelector("tbody");
+    const filterEstado = document.querySelector(
+        "#filterSelectEstado",
+    ) as HTMLSelectElement;
+    const filterArea = document.querySelector(
+        "#filterSelectArea",
+    ) as HTMLSelectElement;
+
+    let articulos: any[] = [];
 
     const statusColors = {
-        'Enviado': '#6B1B32',
-        'En Revision': '#B57331',
-        'Aprobados': '#2D7A32',
-        'Rechazados': '#c83e2b',
+        Enviado: "#6B1B32",
+        "En Revision": "#B57331",
+        Aprobados: "#2D7A32",
+        Rechazados: "#c83e2b",
     };
+
+    function normalizar(texto: string) {
+        return (texto || "").trim().toLowerCase();
+    }
+
+    function limpiarTabla() {
+        if (!tableBody) return;
+        tableBody.innerHTML = "";
+    }
+
+    function renderTabla(lista: any[]) {
+        limpiarTabla();
+        if (!tableBody) return;
+        if (lista.length === 0) {
+            const rowHTML =
+                "<tr><td colspan='5' class='flex justify-between lg:table-cell px-6 py-3 lg:py-4 border-b lg:border-none font-bold text-center'>No hay artículos para mostrar</td></tr>";
+            tableBody.insertAdjacentHTML("beforeend", rowHTML);
+            return;
+        }
+        for (const element of lista) {
+            addRow({
+                id: element.articulo.idArticulo,
+                title: element.articulo.titulo,
+                date: element.articulo.date
+                    ? new Date(
+                          element.articulo.date as string,
+                      ).toLocaleDateString()
+                    : "N/A",
+                status: element.articulo.estado,
+                route: `/autor/verArticulo?id=${element.articulo.idArticulo}`,
+            });
+        }
+    }
+
+    function aplicarFiltros() {
+        const estadoSeleccionado = normalizar(filterEstado.value);
+        const areaSeleccionada = normalizar(filterArea.value);
+
+        console.log(estadoSeleccionado, areaSeleccionada);
+
+        const filtrados = articulos.filter((item) => {
+            const estadoItem = normalizar(item.articulo.estado);
+            const areaItem = normalizar(item.articulo.area || "");
+
+            const cumpleEstado =
+                estadoSeleccionado === "todos" ||
+                estadoItem === estadoSeleccionado;
+
+            const cumpleArea =
+                areaSeleccionada === "todos" || areaItem === areaSeleccionada;
+
+            return cumpleEstado && cumpleArea;
+        });
+
+        renderTabla(filtrados);
+    }
 
     function addRow(data: any) {
         if (!tableBody) return;
-        const statusColor = statusColors[data.status as keyof typeof statusColors] || '#6B1B32';
+        const statusColor =
+            statusColors[data.status as keyof typeof statusColors] || "#6B1B32";
         const isEven = tableBody.children.length % 2 !== 0;
-        const bgClass = isEven ? 'bg-[#F3F2F3]' : 'bg-white';
+        const bgClass = isEven ? "bg-[#F3F2F3]" : "bg-white";
 
         const rowHTML = `
         <tr class="block lg:table-row ${bgClass} border-b mb-4 lg:mb-0 shadow-sm lg:shadow-none">
             <td class="flex justify-between lg:table-cell px-6 py-3 lg:py-4 border-b lg:border-none">
                 <span class="lg:hidden font-bold text-[#6B1B32] uppercase text-xs">ID</span>
-                <span>E-${String(data.id).padStart(4, '0')}</span>
+                <span>E-${String(data.id).padStart(4, "0")}</span>
             </td>
             <td class="flex justify-between lg:table-cell px-6 py-3 lg:py-4 border-b lg:border-none">
                 <span class="lg:hidden font-bold text-[#6B1B32] uppercase text-xs">Título</span>
@@ -56,7 +154,7 @@ import '../styles/global.css'
             </td>
             <td class="flex flex-col lg:table-cell px-6 py-4 border-b lg:border-none text-center">
                 <span class="lg:hidden font-bold text-[#6B1B32] uppercase text-xs text-left mb-2">Estado</span>
-                <span class="text-white px-8 py-2 rounded-sm font-bold text-xs inline-block w-full lg:w-40 uppercase mx-auto" 
+                <span class="text-white px-8 py-2 rounded-sm font-bold text-xs inline-block w-full lg:w-40 uppercase mx-auto"
                       style="background-color: ${statusColor}">
                     ${data.status}
                 </span>
@@ -70,27 +168,21 @@ import '../styles/global.css'
         </tr>
     `;
 
-        tableBody.insertAdjacentHTML('beforeend', rowHTML);
+        tableBody.insertAdjacentHTML("beforeend", rowHTML);
     }
 
-    async function getData(){
+    async function getData() {
         const { data, error } = await actions.getArticulos();
-        if(error){
+        if (error) {
             console.error(error);
-            return {};
+            return;
         }
-        for(let element of data){
-            console.log(element);
-            addRow({
-                id: element.articulo.idArticulo,
-                title: element.articulo.titulo,
-                date: element.articulo.date ? new Date(element.articulo.date as unknown as string).toLocaleDateString() : 'N/A',
-                status: element.articulo.estado,
-                route: `/autor/verArticulo?id=${element.articulo.idArticulo}`,
-            });
-        }
+        articulos = data;
+        aplicarFiltros();
     }
 
-    getData()
+    filterEstado.addEventListener("change", aplicarFiltros);
+    filterArea.addEventListener("change", aplicarFiltros);
 
+    getData();
 </script>
